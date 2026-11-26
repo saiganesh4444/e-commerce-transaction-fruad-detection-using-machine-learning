@@ -21,8 +21,8 @@ from utils.data_generator import (
 # PAGE CONFIG
 # =====================================================
 st.set_page_config(
-    page_title="Sentinel | E-Commerce Fraud Intelligence",
-    page_icon="🛡️",
+    page_title="Sentinel — Fraud Control Sheet",
+    page_icon="◼",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -30,13 +30,15 @@ st.set_page_config(
 # =====================================================
 # DESIGN TOKENS
 # =====================================================
-ACCENT = "#6d8cff"
-CYAN = "#22d3ee"
-OK = "#2dd4a7"
-BAD = "#ff5c7c"
-WARN = "#f5b544"
-MUTED = "#8b95a7"
-GRID = "rgba(148,163,184,0.08)"
+INK = "#12110f"
+PAPER = "#efece2"
+PAPER_2 = "#f7f5ec"
+MUTED = "#77746a"
+RULE = "#c9c4b4"
+RED = "#c8341f"
+GREEN = "#1c6b4a"
+AMBER = "#a9660f"
+GRID = "rgba(18,17,15,0.08)"
 
 # Streamlit renamed `use_container_width` to `width="stretch"` in 1.49.
 # Pick whichever keyword the running version supports so the app stays portable.
@@ -48,269 +50,377 @@ def _streamlit_minor() -> tuple:
 WIDE = {"width": "stretch"} if _streamlit_minor() >= (1, 49) else {"use_container_width": True}
 
 NAV = [
-    ("Overview", "◈", "Overview"),
-    ("Dataset", "▤", "Dataset Explorer"),
-    ("Analytics", "◭", "Fraud Analytics"),
-    ("Training", "◉", "Model Lab"),
-    ("Monitor", "☰", "Transaction Monitor"),
-    ("Predict", "⌕", "Risk Simulator"),
+    ("Overview", "01"),
+    ("Dataset", "02"),
+    ("Analytics", "03"),
+    ("Training", "04"),
+    ("Monitor", "05"),
+    ("Predict", "06"),
 ]
+PAGE_NUM = {key: num for key, num in NAV}
+PAGE_TITLE = {
+    "Overview": "Overview",
+    "Dataset": "Dataset",
+    "Analytics": "Analytics",
+    "Training": "Model Lab",
+    "Monitor": "Monitor",
+    "Predict": "Predict",
+}
 
 # =====================================================
 # GLOBAL STYLES
 # =====================================================
 CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root{
-  --bg:#06080e;
-  --line:rgba(148,163,184,.14);
-  --line-soft:rgba(148,163,184,.09);
-  --text:#e9eef7;
-  --muted:#8b95a7;
-  --accent:#6d8cff;
-  --cyan:#22d3ee;
-  --ok:#2dd4a7;
-  --bad:#ff5c7c;
-  --warn:#f5b544;
+  --paper:#efece2;
+  --paper2:#f7f5ec;
+  --ink:#12110f;
+  --ink-soft:#3a3833;
+  --muted:#77746a;
+  --rule:#c9c4b4;
+  --red:#c8341f;
+  --green:#1c6b4a;
+  --amber:#a9660f;
 }
 
-html, body, [class*="css"], .stApp{
-  font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+html, body, [class*="css"], .stApp, [data-testid="stAppViewContainer"]{
+  font-family:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
   -webkit-font-smoothing:antialiased;
 }
 
 .stApp, [data-testid="stAppViewContainer"]{
   background:
-    radial-gradient(1100px 620px at 84% -12%, rgba(109,140,255,.17), transparent 62%),
-    radial-gradient(880px 520px at 4% -6%, rgba(34,211,238,.10), transparent 58%),
-    radial-gradient(700px 500px at 50% 108%, rgba(109,140,255,.07), transparent 60%),
-    #06080e;
-  color:var(--text);
+    linear-gradient(rgba(18,17,15,.028) 1px, transparent 1px) 0 0 / 100% 28px,
+    var(--paper);
+  color:var(--ink);
 }
 
 header[data-testid="stHeader"]{background:transparent; height:0;}
 #MainMenu, footer, header [data-testid="stToolbar"], [data-testid="stDecoration"]{visibility:hidden; height:0;}
 
 .block-container{
-  padding-top:2.1rem; padding-bottom:3.5rem; max-width:1440px;
-  animation:fade .5s ease both;
+  padding-top:1.4rem; padding-bottom:1rem; max-width:1400px;
+  animation:sheet .35s ease both;
 }
-@keyframes fade{from{opacity:0; transform:translateY(7px);} to{opacity:1; transform:none;}}
+@keyframes sheet{from{opacity:0;} to{opacity:1;}}
 
-::-webkit-scrollbar{width:9px;height:9px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:rgba(148,163,184,.22); border-radius:99px;}
-::-webkit-scrollbar-thumb:hover{background:rgba(148,163,184,.36);}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:var(--paper2);}
+::-webkit-scrollbar-thumb{background:var(--rule); border:2px solid var(--paper2);}
+::-webkit-scrollbar-thumb:hover{background:var(--ink);}
+
+/* ---------- TOP BAR / MASTHEAD ---------- */
+.topbar{
+  display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6rem;
+  border-top:2px solid var(--ink); border-bottom:1px solid var(--ink);
+  padding:.4rem 0; margin-bottom:1.1rem;
+  font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft);
+}
+.topbar b{color:var(--ink); font-weight:600;}
+.topbar .blink{display:inline-block; width:6px; height:6px; background:var(--red); margin-right:.35rem;}
+
+.masthead{
+  position:relative; border:1px solid var(--ink); background:var(--paper2);
+  padding:1.6rem 1.7rem 1.2rem; margin-bottom:.75rem;
+}
+.masthead::before, .masthead::after{
+  content:"+"; position:absolute; font-size:.8rem; color:var(--ink); line-height:1;
+}
+.masthead::before{top:4px; left:5px;}
+.masthead::after{bottom:2px; right:6px;}
+.mast-eyebrow{
+  display:flex; flex-wrap:wrap; justify-content:space-between; gap:.5rem;
+  font-size:.6rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted);
+  border-bottom:1px dashed var(--rule); padding-bottom:.5rem; margin-bottom:1rem;
+}
+.masthead h1{
+  font-family:'IBM Plex Mono', monospace; font-weight:600;
+  font-size:2.85rem; line-height:1.02; letter-spacing:-.045em;
+  color:var(--ink); margin:0 0 .55rem 0; text-transform:uppercase;
+}
+.masthead h1 .slash{color:var(--red);}
+.mast-role{
+  font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft);
+  margin-bottom:1.15rem;
+}
+.mast-role b{color:var(--ink);}
+.mast-lede{
+  font-size:.82rem; line-height:1.75; color:var(--ink-soft);
+  max-width:74ch; margin:0 0 1.2rem 0;
+}
+.mast-meta{
+  display:grid; grid-template-columns:repeat(5,1fr);
+  border-top:1px solid var(--ink); margin:0 -1.7rem;
+}
+.mast-cell{padding:.6rem 1.7rem .1rem; border-right:1px solid var(--rule);}
+.mast-cell:last-child{border-right:none;}
+.mast-k{display:block; font-size:.57rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:.2rem;}
+.mast-v{display:block; font-size:.82rem; font-weight:600; color:var(--ink); letter-spacing:.02em;}
+.mast-v.red{color:var(--red);}
+
+.ticker{
+  overflow:hidden; border-bottom:1px solid var(--ink); margin-bottom:1.9rem;
+  padding:.4rem 0; background:transparent;
+}
+.ticker-track{
+  display:flex; width:max-content; gap:2.5rem; white-space:nowrap;
+  font-size:.6rem; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-soft);
+  animation:ticker 42s linear infinite;
+}
+@keyframes ticker{from{transform:translateX(0);} to{transform:translateX(-50%);}}
+.ticker:hover .ticker-track{animation-play-state:paused;}
 
 /* ---------- SIDEBAR ---------- */
 section[data-testid="stSidebar"]{
-  background:linear-gradient(180deg, #0a0e17 0%, #070a11 100%);
-  border-right:1px solid var(--line-soft);
+  background:var(--paper2);
+  border-right:1px solid var(--ink);
 }
-section[data-testid="stSidebar"] > div{padding-top:1.1rem;}
-section[data-testid="stSidebar"] .block-container{padding-top:1rem;}
+section[data-testid="stSidebar"] > div{padding-top:.9rem;}
+section[data-testid="stSidebar"] .block-container{padding-top:.4rem;}
 
-.brand{display:flex; align-items:center; gap:.7rem; padding:.2rem 0 .1rem;}
+.brand{display:flex; align-items:stretch; gap:.65rem; padding:0 0 1rem; border-bottom:1px solid var(--ink); margin-bottom:.9rem;}
 .brand-mark{
-  width:38px;height:38px;border-radius:11px;flex:0 0 38px;
-  background:linear-gradient(140deg,#6d8cff,#22d3ee);
+  width:42px;height:42px;flex:0 0 42px; border:1px solid var(--ink);
   display:flex;align-items:center;justify-content:center;
-  font-size:1.05rem; font-weight:700; color:#05070c;
-  box-shadow:0 10px 24px -12px rgba(109,140,255,.9);
+  font-size:.82rem; font-weight:600; letter-spacing:.04em; color:var(--ink);
+  background:var(--paper);
 }
-.brand-name{font-family:'Sora',sans-serif; font-size:1.02rem; font-weight:600; letter-spacing:-.015em; color:#f2f6fd; line-height:1.15;}
-.brand-sub{font-size:.68rem; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; margin-top:2px;}
+.brand-name{font-size:.92rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink); line-height:1.2;}
+.brand-sub{font-size:.58rem; color:var(--muted); letter-spacing:.15em; text-transform:uppercase; margin-top:3px;}
 
 .side-label{
-  font-size:.66rem; letter-spacing:.13em; text-transform:uppercase;
-  color:#6b7788; font-weight:600; margin:1.15rem 0 .45rem .15rem;
+  font-size:.57rem; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--muted); font-weight:500; margin:1.3rem 0 .5rem 0;
+  display:flex; justify-content:space-between; align-items:baseline;
 }
-
-.nav-pill{
-  display:flex; align-items:center; gap:.55rem;
-  font-size:.78rem; color:#9aa6b8; padding:.55rem .7rem;
-  border:1px solid var(--line-soft); border-radius:10px;
-  background:rgba(255,255,255,.015);
-}
+.side-label span{color:var(--ink); font-weight:600;}
 
 /* sidebar navigation buttons */
 section[data-testid="stSidebar"] .stButton > button{
   width:100%; justify-content:flex-start; align-items:center; text-align:left;
-  padding:.45rem .8rem; margin-bottom:.22rem; min-height:2.15rem; height:auto;
-  border-radius:10px; font-size:.86rem; font-weight:500;
-  background:transparent; color:#9aa6b8;
-  border:1px solid transparent;
-  transition:all .16s ease;
+  padding:.5rem .65rem; margin-bottom:0; min-height:2.05rem; height:auto;
+  border-radius:0; font-family:'IBM Plex Mono', monospace;
+  font-size:.7rem; font-weight:500; letter-spacing:.09em; text-transform:uppercase;
+  background:transparent; color:var(--ink-soft);
+  border:none; border-bottom:1px dashed var(--rule); border-left:2px solid transparent;
+  transition:background .12s ease, color .12s ease;
   box-shadow:none;
 }
 section[data-testid="stSidebar"] .stButton > button > div,
 section[data-testid="stSidebar"] .stButton > button [data-testid="stMarkdownContainer"]{
-  width:100%; display:block; text-align:left; line-height:1.4;
+  width:100%; display:block; text-align:left; line-height:1.3;
 }
 section[data-testid="stSidebar"] .stButton > button:hover{
-  background:rgba(109,140,255,.09);
-  border-color:rgba(109,140,255,.20);
-  color:#e4ebf7;
+  background:rgba(18,17,15,.06); color:var(--ink); border-left-color:var(--red);
 }
 section[data-testid="stSidebar"] .stButton > button[kind="primary"],
 section[data-testid="stSidebar"] [data-testid="stBaseButton-primary"]{
-  background:linear-gradient(90deg, rgba(109,140,255,.20), rgba(34,211,238,.07));
-  border:1px solid rgba(109,140,255,.42);
-  color:#f2f6fd; font-weight:600;
-  box-shadow:0 12px 26px -18px rgba(109,140,255,1), inset 0 1px 0 rgba(255,255,255,.06);
+  background:var(--ink); color:var(--paper); border-left:2px solid var(--red);
+  border-bottom:1px solid var(--ink); font-weight:600;
 }
-section[data-testid="stSidebar"] .stButton > button p{font-size:.86rem; margin:0; color:inherit;}
-section[data-testid="stSidebar"] .stButton > button:focus:not(:active){border-color:rgba(109,140,255,.4); color:#f2f6fd;}
+section[data-testid="stSidebar"] .stButton > button p{font-size:.7rem; margin:0; color:inherit; letter-spacing:inherit;}
+section[data-testid="stSidebar"] .stButton > button:focus:not(:active){border-color:var(--ink); color:var(--ink);}
+
+.cutoff-box{
+  border:1px solid var(--ink); background:var(--paper);
+  padding:.55rem .65rem; display:flex; justify-content:space-between; align-items:baseline;
+  font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+}
+.cutoff-box b{font-size:1.05rem; color:var(--ink); letter-spacing:-.02em;}
+
+.pipe-row{
+  display:flex; justify-content:space-between; gap:.5rem;
+  border-bottom:1px dotted var(--rule); padding:.34rem 0;
+  font-size:.62rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);
+}
+.pipe-row em{font-style:normal; color:var(--muted);}
+
+.side-foot{
+  font-size:.6rem; color:var(--muted); line-height:1.75; letter-spacing:.04em;
+  padding-top:.9rem; margin-top:1rem; border-top:1px solid var(--rule);
+  text-transform:uppercase;
+}
 
 /* ---------- GENERIC BUTTONS ---------- */
 .stButton > button, .stDownloadButton > button, .stFormSubmitButton > button{
-  border-radius:10px; font-weight:600; font-size:.85rem;
-  border:1px solid var(--line); background:rgba(255,255,255,.03); color:#dfe6f2;
-  transition:all .16s ease;
+  border-radius:0; font-family:'IBM Plex Mono', monospace;
+  font-weight:600; font-size:.68rem; letter-spacing:.12em; text-transform:uppercase;
+  border:1px solid var(--ink); background:transparent; color:var(--ink);
+  padding:.52rem .9rem; transition:background .12s ease, color .12s ease, border-color .12s ease;
+  box-shadow:none;
 }
 .stButton > button:hover, .stDownloadButton > button:hover{
-  border-color:rgba(109,140,255,.45); background:rgba(109,140,255,.10); color:#fff;
+  background:var(--ink); border-color:var(--ink); color:var(--paper);
 }
 .stButton > button[kind="primary"], [data-testid="stBaseButton-primary"], .stFormSubmitButton > button{
-  background:linear-gradient(100deg,#6d8cff,#4f8dff 45%,#22d3ee);
-  border:none; color:#05070c;
-  box-shadow:0 14px 30px -16px rgba(109,140,255,.95);
+  background:var(--ink); border:1px solid var(--ink); color:var(--paper);
 }
 .stButton > button[kind="primary"]:hover, .stFormSubmitButton > button:hover{
-  filter:brightness(1.06); color:#05070c;
+  background:var(--red); border-color:var(--red); color:var(--paper_2, #f7f5ec);
 }
 .stButton > button[kind="primary"] p, .stButton > button[kind="primary"] span,
 [data-testid="stBaseButton-primary"] p, [data-testid="stBaseButton-primary"] span,
 .stFormSubmitButton > button p, .stFormSubmitButton > button span{
-  color:#05070c !important; font-weight:700;
+  color:inherit !important; font-weight:600; letter-spacing:inherit;
 }
-.stDownloadButton > button p{color:#e4ebf7;}
-
-/* ---------- HERO ---------- */
-.hero{
-  position:relative; overflow:hidden;
-  border:1px solid var(--line);
-  border-radius:22px;
-  padding:2.1rem 2.3rem;
-  margin-bottom:1.6rem;
-  background:
-    radial-gradient(620px 320px at 100% 0%, rgba(34,211,238,.14), transparent 65%),
-    radial-gradient(560px 340px at 0% 100%, rgba(109,140,255,.16), transparent 60%),
-    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.012));
-  box-shadow:0 40px 80px -60px #000;
-}
-.hero::after{
-  content:""; position:absolute; inset:0; pointer-events:none;
-  background:linear-gradient(90deg, rgba(109,140,255,.55), rgba(34,211,238,.35), transparent 60%);
-  height:1px; top:0;
-}
-.eyebrow{
-  display:inline-flex; align-items:center; gap:.5rem;
-  font-size:.66rem; letter-spacing:.15em; text-transform:uppercase; font-weight:600;
-  color:#b7c3d6; background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.10);
-  padding:.34rem .7rem; border-radius:99px; margin-bottom:1rem;
-}
-.pulse{width:6px;height:6px;border-radius:99px;background:#2dd4a7;box-shadow:0 0 0 0 rgba(45,212,167,.6);animation:beat 2.2s infinite;}
-@keyframes beat{0%{box-shadow:0 0 0 0 rgba(45,212,167,.55);}70%{box-shadow:0 0 0 7px rgba(45,212,167,0);}100%{box-shadow:0 0 0 0 rgba(45,212,167,0);}}
-.hero h1{
-  font-family:'Sora',sans-serif; font-size:2.35rem; line-height:1.12;
-  font-weight:600; letter-spacing:-.03em; color:#f7faff; margin:0 0 .7rem 0;
-}
-.hero h1 .grad{
-  background:linear-gradient(95deg,#a9c0ff,#6d8cff 40%,#22d3ee);
-  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-}
-.hero p{color:#9aa6b8; font-size:.94rem; line-height:1.65; max-width:62ch; margin:0;}
-.hero-chips{display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1.3rem;}
-.chip{
-  font-size:.72rem; color:#c3cddd; padding:.34rem .7rem; border-radius:8px;
-  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
-}
-.chip b{color:#f2f6fd; font-weight:600;}
+.stButton > button p, .stDownloadButton > button p{color:inherit; font-size:.68rem; margin:0;}
+.stDownloadButton > button{margin-top:.7rem;}
 
 /* ---------- SECTION HEADINGS ---------- */
-.sec{margin:2.1rem 0 .9rem 0;}
-.sec-eyebrow{font-size:.64rem; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); font-weight:700;}
-.sec-title{font-family:'Sora',sans-serif; font-size:1.16rem; font-weight:600; color:#f2f6fd; letter-spacing:-.02em; margin-top:.28rem;}
-.sec-sub{font-size:.83rem; color:var(--muted); margin-top:.25rem;}
+.sec{
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:.7rem;
+  border-top:2px solid var(--ink); margin:2.4rem 0 1rem; padding-top:.55rem;
+}
+.sec-num{
+  font-size:.68rem; font-weight:600; letter-spacing:.1em; color:var(--paper);
+  background:var(--ink); padding:.14rem .4rem; line-height:1.4;
+}
+.sec-title{
+  font-size:.95rem; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--ink);
+}
+.sec-sub{
+  flex-basis:100%; font-size:.72rem; color:var(--muted); letter-spacing:.02em;
+  line-height:1.7; margin:0;
+}
 
 /* ---------- KPI CARDS ---------- */
 .kpi{
   position:relative; overflow:hidden;
-  background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.012));
-  border:1px solid var(--line); border-radius:15px;
-  padding:1rem 1.05rem 1.05rem;
-  transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  background:var(--paper2);
+  border:1px solid var(--ink);
+  padding:.8rem .85rem .75rem;
   height:100%;
+  transition:background .14s ease, color .14s ease;
 }
-.kpi:hover{transform:translateY(-3px); border-color:rgba(109,140,255,.4); box-shadow:0 26px 44px -34px rgba(109,140,255,.9);}
-.kpi::before{content:""; position:absolute; left:0; top:0; height:2px; width:100%; background:var(--tone,var(--accent)); opacity:.7;}
+.kpi:hover{background:var(--ink); color:var(--paper);}
+.kpi::after{
+  content:""; position:absolute; top:0; right:0;
+  border-width:0 9px 9px 0; border-style:solid;
+  border-color:transparent var(--paper) transparent transparent;
+}
 .kpi-top{display:flex; align-items:center; justify-content:space-between; gap:.5rem;}
-.kpi-label{font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; color:#8b95a7; font-weight:600;}
-.kpi-ico{font-size:.8rem; color:var(--tone,var(--accent)); opacity:.9;}
-.kpi-value{font-family:'Sora',sans-serif; font-size:1.62rem; font-weight:600; color:#f7faff; letter-spacing:-.035em; margin-top:.5rem; line-height:1;}
-.kpi-delta{font-size:.71rem; color:#7f8b9d; margin-top:.45rem;}
+.kpi-label{font-size:.57rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); font-weight:500;}
+.kpi:hover .kpi-label{color:#b8b2a2;}
+.kpi-ico{font-size:.72rem; color:var(--red); line-height:1;}
+.kpi-value{
+  font-size:1.7rem; font-weight:500; color:var(--ink); letter-spacing:-.045em;
+  margin-top:.5rem; line-height:1;
+}
+.kpi:hover .kpi-value{color:var(--paper);}
+.kpi-delta{font-size:.6rem; color:var(--muted); margin-top:.45rem; letter-spacing:.05em; text-transform:uppercase;}
+.kpi:hover .kpi-delta{color:#b8b2a2;}
 
 /* ---------- PANELS (st.container(border=True)) ---------- */
 div[data-testid="stVerticalBlockBorderWrapper"]{
-  background:linear-gradient(180deg, rgba(255,255,255,.038), rgba(255,255,255,.010));
-  border:1px solid var(--line) !important;
-  border-radius:16px;
-  box-shadow:0 30px 60px -55px #000;
+  background:var(--paper2);
+  border:1px solid var(--ink) !important;
+  border-radius:0;
+  box-shadow:none;
 }
-div[data-testid="stVerticalBlockBorderWrapper"] > div{padding:.35rem .55rem .2rem;}
+div[data-testid="stVerticalBlockBorderWrapper"] > div{padding:.55rem .7rem .35rem;}
+[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlockBorderWrapper"]{
+  border:1px solid var(--rule) !important;
+}
 
 /* ---------- MISC NATIVE OVERRIDES ---------- */
 p, span, label, div{color:inherit;}
-[data-testid="stMarkdownContainer"] p{font-size:.88rem; color:#9aa6b8; line-height:1.6;}
-[data-testid="stWidgetLabel"] p{font-size:.78rem; color:#a9b4c6; font-weight:500;}
-[data-testid="stCaptionContainer"], .stCaption{color:#78859a !important; font-size:.75rem !important;}
+[data-testid="stMarkdownContainer"] p{font-size:.78rem; color:var(--ink-soft); line-height:1.75;}
+[data-testid="stWidgetLabel"] p{font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); font-weight:500;}
+[data-testid="stCaptionContainer"], .stCaption{color:var(--muted) !important; font-size:.62rem !important; letter-spacing:.06em; text-transform:uppercase;}
 
-[data-testid="stSlider"] [role="slider"]{background:var(--accent);}
+[data-testid="stSlider"] [role="slider"]{background:var(--ink); border:1px solid var(--ink); box-shadow:none; border-radius:0;}
 [data-testid="stSlider"] [data-testid="stTickBar"]{background:transparent;}
+[data-testid="stSlider"] [data-testid="stThumbValue"]{color:var(--ink); font-size:.62rem;}
 
 [data-testid="stFileUploaderDropzone"]{
-  background:rgba(255,255,255,.02); border:1px dashed rgba(109,140,255,.35); border-radius:14px;
+  background:var(--paper); border:1px dashed var(--ink); border-radius:0;
 }
-[data-testid="stFileUploaderDropzone"]:hover{border-color:rgba(109,140,255,.65); background:rgba(109,140,255,.05);}
+[data-testid="stFileUploaderDropzone"]:hover{border-style:solid; background:rgba(18,17,15,.04);}
 
-[data-baseweb="select"] > div, [data-baseweb="input"] > div, .stNumberInput input{
-  background:rgba(255,255,255,.035) !important;
-  border-color:var(--line) !important;
-  border-radius:9px !important;
-  color:#e9eef7 !important;
-  font-size:.85rem;
+[data-baseweb="select"] > div, [data-baseweb="input"] > div, .stNumberInput input, .stTextInput input{
+  background:var(--paper) !important;
+  border:1px solid var(--ink) !important;
+  border-radius:0 !important;
+  color:var(--ink) !important;
+  font-family:'IBM Plex Mono', monospace !important;
+  font-size:.74rem;
 }
-[data-baseweb="tab-list"]{gap:.35rem; border-bottom:1px solid var(--line-soft);}
-[data-baseweb="tab"]{border-radius:9px 9px 0 0; font-size:.83rem; color:#8b95a7;}
-[aria-selected="true"][data-baseweb="tab"]{color:#f2f6fd;}
+[data-baseweb="select"] > div:hover, [data-baseweb="input"] > div:hover{border-color:var(--red) !important;}
 
-[data-testid="stDataFrame"]{border:1px solid var(--line-soft); border-radius:14px; overflow:hidden;}
-[data-testid="stDataFrame"] *{font-family:'Inter',sans-serif;}
+[data-baseweb="tab-list"]{gap:0; border-bottom:1px solid var(--ink);}
+[data-baseweb="tab"]{border-radius:0; font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);}
+[aria-selected="true"][data-baseweb="tab"]{color:var(--ink);}
 
-[data-testid="stAlert"]{border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.03);}
+[data-testid="stDataFrame"]{border:1px solid var(--ink); border-radius:0; overflow:hidden; background:var(--paper2);}
+[data-testid="stDataFrame"] *{font-family:'IBM Plex Mono', monospace !important;}
 
-hr{border-color:var(--line-soft) !important;}
+[data-testid="stAlert"]{border-radius:0; border:1px solid var(--ink); background:var(--paper2);}
+[data-testid="stAlert"] p{color:var(--ink-soft) !important;}
+
+hr{border:none; border-top:1px solid var(--rule) !important;}
+
+/* ---------- TABLES ---------- */
+.sheet-table{border:1px solid var(--ink); background:var(--paper2);}
+.sheet-table table{width:100%; border-collapse:collapse;}
+.sheet-table th{
+  text-align:left; padding:.5rem .7rem; font-size:.56rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--muted); font-weight:500;
+  border-bottom:1px solid var(--ink); background:var(--paper);
+}
+.sheet-table td{padding:.5rem .7rem; font-size:.7rem; color:var(--ink-soft); border-bottom:1px dotted var(--rule);}
+.sheet-table tr:last-child td{border-bottom:none;}
+.sheet-table tr:hover td{background:rgba(18,17,15,.035);}
+.sheet-table td.strong{color:var(--ink); font-weight:600;}
 
 /* ---------- VERDICT / SIGNAL BLOCKS ---------- */
-.verdict{border-radius:16px; padding:1.15rem 1.25rem; border:1px solid; margin-top:.4rem;}
-.verdict.fraud{background:linear-gradient(120deg, rgba(255,92,124,.14), rgba(255,92,124,.04)); border-color:rgba(255,92,124,.42);}
-.verdict.safe{background:linear-gradient(120deg, rgba(45,212,167,.13), rgba(45,212,167,.03)); border-color:rgba(45,212,167,.38);}
-.verdict-title{font-family:'Sora',sans-serif; font-size:1.02rem; font-weight:600; letter-spacing:-.01em; color:#f7faff; display:flex; align-items:center; gap:.5rem;}
-.verdict-sub{font-size:.8rem; color:#9aa6b8; margin-top:.35rem;}
-.sig{display:inline-flex; align-items:center; gap:.4rem; font-size:.76rem; color:#d8e0ee;
-  background:rgba(245,181,68,.10); border:1px solid rgba(245,181,68,.30);
-  padding:.36rem .65rem; border-radius:8px; margin:.22rem .3rem .22rem 0;}
-.sig.ok{background:rgba(45,212,167,.10); border-color:rgba(45,212,167,.30);}
+.verdict{position:relative; border:1px solid; padding:1rem 1.05rem; margin-top:0;}
+.verdict.fraud{background:rgba(200,52,31,.06); border-color:var(--red);}
+.verdict.safe{background:rgba(28,107,74,.06); border-color:var(--green);}
+.verdict-title{
+  font-size:.86rem; font-weight:600; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ink); display:flex; align-items:center; gap:.45rem; padding-right:6.2rem;
+}
+.verdict-sub{font-size:.68rem; color:var(--ink-soft); margin-top:.4rem; line-height:1.7;}
+.stamp{
+  position:absolute; top:.85rem; right:.85rem; transform:rotate(-7deg);
+  border:1.5px solid currentColor; padding:.18rem .4rem;
+  font-size:.55rem; letter-spacing:.2em; text-transform:uppercase; font-weight:600;
+}
+.stamp.fraud{color:var(--red);}
+.stamp.safe{color:var(--green);}
 
-.pill{display:inline-block; font-size:.72rem; font-weight:600; padding:.2rem .55rem; border-radius:99px;}
-.pill.ok{background:rgba(45,212,167,.13); color:#5ee0bb; border:1px solid rgba(45,212,167,.3);}
-.pill.bad{background:rgba(255,92,124,.13); color:#ff8ea3; border:1px solid rgba(255,92,124,.3);}
+.sig{
+  display:inline-block; font-size:.62rem; letter-spacing:.05em; color:var(--ink-soft);
+  background:var(--paper); border:1px solid var(--rule);
+  padding:.28rem .5rem; margin:.22rem .3rem .22rem 0; text-transform:uppercase;
+}
+.sig::before{content:"▲ "; color:var(--red);}
+.sig.ok::before{content:"✓ "; color:var(--green);}
 
-.side-foot{font-size:.68rem; color:#5f6b7d; line-height:1.6; padding-top:.6rem;}
+.pill{
+  display:inline-block; font-size:.55rem; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; padding:.16rem .4rem; border:1px solid;
+}
+.pill.ok{background:rgba(28,107,74,.08); color:var(--green); border-color:var(--green);}
+.pill.bad{background:rgba(200,52,31,.08); color:var(--red); border-color:var(--red);}
+
+/* ---------- CHECKLIST STRIPS ---------- */
+.step{border:1px solid var(--ink); background:var(--paper2); padding:.75rem .8rem; height:100%;}
+.step-no{font-size:.58rem; letter-spacing:.16em; color:var(--red); font-weight:600;}
+.step-title{font-size:.74rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--ink); margin-top:.45rem;}
+.step-body{font-size:.64rem; color:var(--ink-soft); line-height:1.75; margin-top:.4rem;}
+
+/* ---------- FOOTER ---------- */
+.footer{
+  display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6rem;
+  border-top:1px solid var(--ink); margin-top:3rem; padding-top:.6rem;
+  font-size:.58rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted);
+}
+.footer b{color:var(--ink); font-weight:600;}
+.footer a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--ink);}
 </style>
 """
 
@@ -321,31 +431,30 @@ st.markdown(CSS, unsafe_allow_html=True)
 # HELPERS
 # =====================================================
 def theme(fig, height=300, title=None, legend=True):
-    """Apply the shared chart theme to a Plotly figure."""
+    """Apply the shared print-sheet chart theme to a Plotly figure."""
     fig.update_layout(
         height=height,
-        margin=dict(l=10, r=10, t=46 if title else 16, b=50 if legend else 12),
+        margin=dict(l=10, r=10, t=44 if title else 14, b=46 if legend else 10),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter, sans-serif", size=11, color=MUTED),
+        font=dict(family="IBM Plex Mono, monospace", size=10, color=MUTED),
         title=dict(
-            text=title, x=0, xanchor="left", y=0.97,
-            font=dict(family="Sora, sans-serif", size=13, color="#dfe6f2"),
+            text=title.upper() if title else None, x=0, xanchor="left", y=0.98,
+            font=dict(family="IBM Plex Mono, monospace", size=11, color=INK),
         ) if title else None,
-        hoverlabel=dict(bgcolor="#111827", bordercolor="rgba(148,163,184,.25)",
-                        font=dict(color="#e9eef7", size=11, family="Inter")),
+        hoverlabel=dict(bgcolor=INK, bordercolor=INK,
+                        font=dict(color=PAPER, size=10, family="IBM Plex Mono, monospace")),
         showlegend=legend,
         legend=dict(orientation="h", yanchor="top", y=-0.18, x=0,
-                    bgcolor="rgba(0,0,0,0)", font=dict(size=10)),
-        colorway=[ACCENT, CYAN, OK, WARN, BAD],
-        bargap=0.35,
-        transition_duration=350,
+                    bgcolor="rgba(0,0,0,0)", font=dict(size=9)),
+        colorway=[INK, RED, GREEN, AMBER, MUTED],
+        bargap=0.42,
+        transition_duration=250,
     )
-    fig.update_xaxes(showgrid=False, zeroline=False,
-                     linecolor="rgba(148,163,184,.12)",
-                     tickfont=dict(size=10), title_font=dict(size=10))
-    fig.update_yaxes(showgrid=True, gridcolor=GRID, zeroline=False,
-                     tickfont=dict(size=10), title_font=dict(size=10))
+    fig.update_xaxes(showgrid=False, zeroline=False, linecolor=RULE, linewidth=1,
+                     tickfont=dict(size=9), title_font=dict(size=9))
+    fig.update_yaxes(showgrid=True, gridcolor=GRID, griddash="dot", zeroline=False,
+                     linecolor=RULE, tickfont=dict(size=9), title_font=dict(size=9))
     return fig
 
 
@@ -354,48 +463,49 @@ def show(fig, key=None):
 
 
 def confusion_figure(data):
-    """Themed confusion-matrix heatmap for labelled data."""
+    """Print-style confusion-matrix heatmap for labelled data."""
     from sklearn.metrics import confusion_matrix
 
     cm = confusion_matrix(data["is_fraud"], data["fraud_prediction"])
     fig = go.Figure(go.Heatmap(
         z=cm, x=["Legit", "Fraud"], y=["Legit", "Fraud"],
-        colorscale=[[0, "#0d1220"], [0.45, "#2f4b8f"], [1, ACCENT]],
+        colorscale=[[0, "#f7f5ec"], [0.45, "#ded8c6"], [1, "#8d8676"]],
         showscale=False, text=cm, texttemplate="%{text:,}",
-        textfont=dict(size=17, color="#f7faff", family="Sora"),
-        hovertemplate="Actual %{y} · Predicted %{x}: %{z:,}<extra></extra>"))
-    theme(fig, 330, "Confusion matrix", legend=False)
+        textfont=dict(size=17, color=INK, family="IBM Plex Mono"),
+        hovertemplate="Actual %{y} · Predicted %{x}: %{z:,}<extra></extra>",
+        xgap=2, ygap=2))
+    theme(fig, 320, "Confusion matrix", legend=False)
     fig.update_yaxes(autorange="reversed", showgrid=False)
     fig.update_xaxes(title="Predicted")
     return fig
 
 
 def roc_figure(data):
-    """Themed ROC curve for labelled data."""
+    """Print-style ROC curve for labelled data."""
     from sklearn.metrics import roc_auc_score, roc_curve
 
     fpr, tpr, _ = roc_curve(data["is_fraud"], data["fraud_probability"])
     auc_v = roc_auc_score(data["is_fraud"], data["fraud_probability"])
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], mode="lines",
-                             line=dict(color="rgba(148,163,184,.35)", dash="dash", width=1),
+                             line=dict(color=RULE, dash="dash", width=1),
                              hoverinfo="skip", showlegend=False))
     fig.add_trace(go.Scatter(
         x=fpr, y=tpr, mode="lines",
-        line=dict(color=CYAN, width=2.4, shape="spline"),
-        fill="tozeroy", fillcolor="rgba(34,211,238,.12)",
+        line=dict(color=RED, width=2.2, shape="spline"),
+        fill="tozeroy", fillcolor="rgba(200,52,31,.08)",
         name=f"AUC {auc_v:.3f}",
         hovertemplate="FPR %{x:.2f} · TPR %{y:.2f}<extra></extra>"))
-    theme(fig, 330, "ROC curve", legend=True)
+    theme(fig, 320, "ROC curve", legend=True)
     fig.update_xaxes(title="False positive rate", range=[0, 1])
     fig.update_yaxes(title="True positive rate", range=[0, 1])
     return fig
 
 
-def kpi(col, label, value, delta="", tone=ACCENT, icon=""):
+def kpi(col, label, value, delta="", tone=INK, icon=""):
     with col:
         st.markdown(
-            f'<div class="kpi" style="--tone:{tone}">'
+            f'<div class="kpi">'
             f'<div class="kpi-top"><span class="kpi-label">{label}</span>'
             f'<span class="kpi-ico">{icon}</span></div>'
             f'<div class="kpi-value">{value}</div>'
@@ -405,12 +515,23 @@ def kpi(col, label, value, delta="", tone=ACCENT, icon=""):
         )
 
 
-def section(eyebrow, title, sub=""):
+def section(num, title, sub=""):
     st.markdown(
-        f'<div class="sec"><div class="sec-eyebrow">{eyebrow}</div>'
-        f'<div class="sec-title">{title}</div>'
-        + (f'<div class="sec-sub">{sub}</div>' if sub else "")
+        f'<div class="sec"><span class="sec-num">{num}</span>'
+        f'<span class="sec-title">{title}</span>'
+        + (f'<p class="sec-sub">{sub}</p>' if sub else "")
         + "</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def topbar(caption):
+    st.markdown(
+        f'<div class="topbar">'
+        f'<span><span class="blink"></span>LIVE · {caption}</span>'
+        f'<span>FRAUD—2026 · CONTROL SHEET № 0001</span>'
+        f'<span>SENTINEL / E-COMMERCE RISK</span>'
+        f'</div>',
         unsafe_allow_html=True,
     )
 
@@ -497,49 +618,44 @@ metrics = load_metrics()
 with st.sidebar:
     st.markdown(
         '<div class="brand">'
-        '<div class="brand-mark">◈</div>'
+        '<div class="brand-mark">S—26</div>'
         '<div><div class="brand-name">Sentinel</div>'
-        '<div class="brand-sub">Fraud Intelligence</div></div>'
+        '<div class="brand-sub">Fraud control sheet</div></div>'
         '</div>',
         unsafe_allow_html=True,
     )
 
-    st.markdown('<div class="side-label">Workspace</div>', unsafe_allow_html=True)
-    for key, icon, label in NAV:
-        if st.button(f"{icon}   {label}", key=f"nav_{key}", **WIDE,
+    st.markdown('<div class="side-label">Index <span>06 sheets</span></div>',
+                unsafe_allow_html=True)
+    for key, num in NAV:
+        if st.button(f"{num} / {PAGE_TITLE[key]}", key=f"nav_{key}", **WIDE,
                      type="primary" if st.session_state.page == key else "secondary"):
             st.session_state.page = key
             st.rerun()
 
-    st.markdown('<div class="side-label">Decision Engine</div>', unsafe_allow_html=True)
+    st.markdown('<div class="side-label">Decision engine</div>', unsafe_allow_html=True)
     threshold = st.slider(
         "Risk threshold",
         min_value=0.10, max_value=0.95, value=0.50, step=0.05,
         help="Transactions scoring at or above this probability are flagged as fraud.",
     )
     st.markdown(
-        f'<div style="display:flex;justify-content:space-between;font-size:.72rem;'
-        f'color:#78859a;margin-top:-.3rem;">'
-        f'<span>Current cutoff</span>'
-        f'<span style="color:{ACCENT};font-weight:600;">{threshold:.0%}</span></div>',
+        f'<div class="cutoff-box"><span>Cutoff</span><b>{threshold:.0%}</b></div>',
         unsafe_allow_html=True,
     )
 
     st.markdown('<div class="side-label">Pipeline</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="nav-pill">StandardScaler · OneHot</div>'
-        '<div style="height:.3rem"></div>'
-        '<div class="nav-pill">SMOTE oversampling</div>'
-        '<div style="height:.3rem"></div>'
-        '<div class="nav-pill">LDA projection</div>'
-        '<div style="height:.3rem"></div>'
-        '<div class="nav-pill">ANN (128·64) + DNN (256·128·64)</div>',
+        '<div class="pipe-row"><span>01 Scale + encode</span><em>Std · OHE</em></div>'
+        '<div class="pipe-row"><span>02 Balance</span><em>SMOTE</em></div>'
+        '<div class="pipe-row"><span>03 Project</span><em>LDA</em></div>'
+        '<div class="pipe-row"><span>04 Ensemble</span><em>ANN + DNN</em></div>',
         unsafe_allow_html=True,
     )
 
     st.markdown(
-        '<div class="side-foot">Models are served from cached artifacts. '
-        'Retrain from the Model Lab tab to refresh metrics and plots.</div>',
+        '<div class="side-foot">Models served from cached artifacts. '
+        'Retrain from sheet 04 to refresh metrics and plots.</div>',
         unsafe_allow_html=True,
     )
 
@@ -567,24 +683,47 @@ fraud_df = df[df["fraud_prediction"] == 1] if scored_ok else df.iloc[0:0]
 fraud_rate = (len(fraud_df) / len(df) * 100) if scored_ok and len(df) else 0.0
 
 # =====================================================
-# HERO
+# MASTHEAD
 # =====================================================
-st.markdown(
-    f'<div class="hero">'
-    f'<div class="eyebrow"><span class="pulse"></span>Live · Hybrid ensemble engine</div>'
-    f'<h1>Fraud intelligence,<br><span class="grad">scored in real time.</span></h1>'
-    f'<p>SMOTE-balanced, LDA-projected ANN + DNN ensemble that scores every transaction '
-    f'against a behavioural risk profile — with explainable signals, live analytics and a '
-    f'tunable decision threshold.</p>'
-    f'<div class="hero-chips">'
-    f'<span class="chip">Records <b>{len(df):,}</b></span>'
-    f'<span class="chip">Flagged <b>{len(fraud_df):,}</b></span>'
-    f'<span class="chip">Fraud rate <b>{fraud_rate:.2f}%</b></span>'
-    f'<span class="chip">ROC-AUC <b>{metrics.get("auc", 0):.3f}</b></span>'
-    f'<span class="chip">Cutoff <b>{threshold:.0%}</b></span>'
-    f'</div></div>',
-    unsafe_allow_html=True,
-)
+topbar("Hybrid ensemble engine")
+
+if page == "Overview":
+    st.markdown(
+        f'<div class="masthead" id="top">'
+        f'<div class="mast-eyebrow"><span>RS—2026 · Staff pass № 0001</span>'
+        f'<span>Section 01 — Overview</span><span>Access: public</span></div>'
+        f'<h1>Fraud intelligence<br><span class="slash">/</span> marking sheet</h1>'
+        f'<div class="mast-role">Sentinel — <b>e-commerce transaction risk</b> · ANN + DNN ensemble</div>'
+        f'<p class="mast-lede">A SMOTE-balanced, LDA-projected ensemble scores every transaction '
+        f'against a behavioural risk profile. Six sheets: overview, dataset, analytics, model lab, '
+        f'monitor and a single-transaction simulator — all driven by one tunable cutoff.</p>'
+        f'<div class="mast-meta">'
+        f'<div class="mast-cell"><span class="mast-k">Dataset</span><span class="mast-v">{len(df):,} rows</span></div>'
+        f'<div class="mast-cell"><span class="mast-k">Flagged</span><span class="mast-v red">{len(fraud_df):,}</span></div>'
+        f'<div class="mast-cell"><span class="mast-k">Fraud rate</span><span class="mast-v">{fraud_rate:.2f}%</span></div>'
+        f'<div class="mast-cell"><span class="mast-k">ROC-AUC</span><span class="mast-v">{metrics.get("auc", 0):.3f}</span></div>'
+        f'<div class="mast-cell"><span class="mast-k">Cutoff</span><span class="mast-v">{threshold:.0%}</span></div>'
+        f'</div></div>',
+        unsafe_allow_html=True,
+    )
+    ticker_items = [
+        "◍ Tune the cutoff in the index",
+        "✳ Every transaction gets a mark",
+        "SMOTE · LDA · ANN 128·64 · DNN 256·128·64",
+        "Metrics refresh on every training run",
+        "Sheet 01 / 06 — scroll to inspect",
+    ]
+    tick = "".join(f"<span>{item}</span><span>✦</span>" for item in ticker_items)
+    st.markdown(f'<div class="ticker"><div class="ticker-track">{tick}{tick}</div></div>',
+                unsafe_allow_html=True)
+else:
+    st.markdown(
+        f'<div class="mast-eyebrow" style="border-top:2px solid var(--ink);padding-top:.5rem;">'
+        f'<span>Sheet {PAGE_NUM[page]} / 06</span>'
+        f'<span>{PAGE_TITLE[page]}</span>'
+        f'<span>{len(df):,} records · cutoff {threshold:.0%}</span></div>',
+        unsafe_allow_html=True,
+    )
 
 # common chart datasets
 hourly = pd.DataFrame()
@@ -598,39 +737,36 @@ if scored_ok and "Transaction Hour" in df.columns:
 # OVERVIEW
 # =====================================================
 if page == "Overview":
-    section("Model health", "Ensemble performance",
+    section("01", "Ensemble performance",
             "Validation metrics from the latest full training run.")
 
     c1, c2, c3, c4, c5 = st.columns(5, gap="small")
-    kpi(c1, "Accuracy", f"{metrics.get('accuracy', 0):.1%}", "Validation split", ACCENT, "◎")
-    kpi(c2, "Precision", f"{metrics.get('precision', 0):.1%}", "Alert quality", CYAN, "◇")
-    kpi(c3, "Recall", f"{metrics.get('recall', 0):.1%}", "Fraud captured", OK, "◈")
-    kpi(c4, "F1 score", f"{metrics.get('f1_score', 0):.1%}", "Harmonic mean", WARN, "◐")
-    kpi(c5, "ROC-AUC", f"{metrics.get('auc', 0):.3f}", "Discrimination", BAD, "◉")
+    kpi(c1, "Accuracy", f"{metrics.get('accuracy', 0):.1%}", "Validation split", INK, "01")
+    kpi(c2, "Precision", f"{metrics.get('precision', 0):.1%}", "Alert quality", INK, "02")
+    kpi(c3, "Recall", f"{metrics.get('recall', 0):.1%}", "Fraud captured", GREEN, "03")
+    kpi(c4, "F1 score", f"{metrics.get('f1_score', 0):.1%}", "Harmonic mean", AMBER, "04")
+    kpi(c5, "ROC-AUC", f"{metrics.get('auc', 0):.3f}", "Discrimination", RED, "05")
 
-    section("Architecture", "How a transaction gets scored",
+    section("02", "How a transaction gets scored",
             "Four stages, from raw attributes to a fused risk probability.")
 
     steps = [
-        ("01", "SMOTE balancing", "Synthesises minority fraud samples on the training split only, so the imbalance is fixed without leaking validation rows.", ACCENT),
-        ("02", "LDA projection", "Linear Discriminant Analysis collapses scaled numeric and one-hot categorical features into a maximally separable space.", CYAN),
-        ("03", "ANN + DNN ensemble", "A 128·64 shallow net learns direct boundaries; a 256·128·64 deep net captures non-linear interactions.", WARN),
-        ("04", "Probability fusion", "Both networks vote; the averaged score is compared to your threshold to produce the final alert.", OK),
+        ("01", "SMOTE balancing", "Synthesises minority fraud samples on the training split only, so the imbalance is fixed without leaking validation rows."),
+        ("02", "LDA projection", "Linear Discriminant Analysis collapses scaled numeric and one-hot categorical features into a maximally separable space."),
+        ("03", "ANN + DNN ensemble", "A 128·64 shallow net learns direct boundaries; a 256·128·64 deep net captures non-linear interactions."),
+        ("04", "Probability fusion", "Both networks vote; the averaged score is compared to your threshold to produce the final alert."),
     ]
     cols = st.columns(4, gap="small")
-    for col, (num, title, body, tone) in zip(cols, steps):
+    for col, (num, title, body) in zip(cols, steps):
         with col:
             st.markdown(
-                f'<div class="kpi" style="--tone:{tone}">'
-                f'<div class="kpi-label" style="color:{tone}">{num}</div>'
-                f'<div style="font-family:Sora,sans-serif;font-size:.95rem;font-weight:600;'
-                f'color:#f2f6fd;margin-top:.45rem;letter-spacing:-.01em;">{title}</div>'
-                f'<div style="font-size:.78rem;color:#8b95a7;line-height:1.55;margin-top:.4rem;">{body}</div>'
-                f'</div>',
+                f'<div class="step"><div class="step-no">{num}</div>'
+                f'<div class="step-title">{title}</div>'
+                f'<div class="step-body">{body}</div></div>',
                 unsafe_allow_html=True,
             )
 
-    section("Live snapshot", "Traffic & risk distribution")
+    section("03", "Live snapshot", "Traffic and risk distribution on the active dataset.")
     left, right = st.columns([1.45, 1], gap="medium")
 
     with left:
@@ -639,14 +775,14 @@ if page == "Overview":
                 fig = go.Figure()
                 fig.add_trace(go.Scatter(
                     x=hourly["Transaction Hour"], y=hourly["Fraud Rate (%)"],
-                    mode="lines", line=dict(color=ACCENT, width=2.4, shape="spline"),
-                    fill="tozeroy", fillcolor="rgba(109,140,255,.16)",
+                    mode="lines", line=dict(color=INK, width=1.6, shape="spline"),
+                    fill="tozeroy", fillcolor="rgba(18,17,15,.06)",
                     hovertemplate="%{x}:00 · %{y:.1f}%<extra></extra>", name="Fraud rate"))
                 fig.add_trace(go.Scatter(
                     x=hourly["Transaction Hour"], y=hourly["Fraud Rate (%)"],
-                    mode="markers", marker=dict(color=CYAN, size=4),
+                    mode="markers", marker=dict(color=RED, size=4, symbol="square"),
                     hoverinfo="skip", showlegend=False))
-                theme(fig, 330, "Fraud rate by hour of day", legend=False)
+                theme(fig, 320, "Fraud rate by hour of day", legend=False)
                 fig.update_xaxes(dtick=3)
                 fig.update_yaxes(title=None, ticksuffix="%")
                 show(fig, "ov_hourly")
@@ -661,22 +797,22 @@ if page == "Overview":
                 fig = go.Figure(go.Pie(
                     labels=["Legitimate", "Flagged"],
                     values=[legit, flagged],
-                    hole=0.72, sort=False,
-                    marker=dict(colors=[OK, BAD], line=dict(color="#06080e", width=3)),
+                    hole=0.64, sort=False,
+                    marker=dict(colors=[INK, RED], line=dict(color=PAPER_2, width=4)),
                     textinfo="none",
                     hovertemplate="%{label}: %{value:,} (%{percent})<extra></extra>"))
-                theme(fig, 330, "Flagged vs legitimate", legend=True)
+                theme(fig, 320, "Flagged vs legitimate", legend=True)
                 fig.update_layout(
-                    annotations=[dict(text=f"<b>{fraud_rate:.1f}%</b><br><span style='font-size:10px;color:{MUTED}'>fraud</span>",
+                    annotations=[dict(text=f"<b>{fraud_rate:.1f}%</b><br>"
+                                          f"<span style='font-size:9px;letter-spacing:.14em'>FRAUD</span>",
                                       x=0.5, y=0.5, showarrow=False,
-                                      font=dict(size=22, color="#f7faff", family="Sora"))])
+                                      font=dict(size=24, color=INK, family="IBM Plex Mono"))])
                 fig.update_layout(legend=dict(orientation="h", y=-0.08, x=0.5, xanchor="center"))
                 show(fig, "ov_pie")
             else:
                 st.caption("No scored data available.")
 
-    section("Priority queue", "Highest-risk open transactions",
-            "The five records closest to or above your current cutoff.")
+    section("04", "Priority queue", "The five records closest to or above your current cutoff.")
     if scored_ok:
         top = df.sort_values("fraud_probability", ascending=False).head(5)
         rows = ""
@@ -685,29 +821,22 @@ if page == "Overview":
             pill = ('<span class="pill bad">Fraud</span>' if is_fraud
                     else '<span class="pill ok">Legit</span>')
             rows += (
-                f'<tr><td style="color:#8b95a7;font-size:.76rem">{r.get("Transaction ID", "—")}</td>'
-                f'<td style="color:#e9eef7;font-weight:600">₹{r.get("Transaction Amount", 0):,.0f}</td>'
-                f'<td style="color:#9aa6b8;font-size:.79rem">{r.get("Device Used", "—")}</td>'
-                f'<td style="color:#9aa6b8;font-size:.79rem">{r.get("Product Category", "—")}</td>'
-                f'<td style="color:#9aa6b8;font-size:.79rem">{r.get("Customer Location", "—")}</td>'
-                f'<td style="text-align:right"><span style="color:{"#ff8ea3" if is_fraud else "#5ee0bb"};'
-                f'font-weight:600;font-size:.8rem">{r["fraud_probability"]:.1%}</span></td>'
+                f'<tr><td>{r.get("Transaction ID", "—")}</td>'
+                f'<td class="strong">₹{r.get("Transaction Amount", 0):,.0f}</td>'
+                f'<td>{r.get("Device Used", "—")}</td>'
+                f'<td>{r.get("Product Category", "—")}</td>'
+                f'<td>{r.get("Customer Location", "—")}</td>'
+                f'<td style="text-align:right;color:{RED if is_fraud else GREEN};font-weight:600;'
+                f'letter-spacing:.04em">{r["fraud_probability"]:.1%}</td>'
                 f'<td style="text-align:right">{pill}</td></tr>'
             )
         st.markdown(
-            f'<div style="border:1px solid var(--line);border-radius:16px;overflow:hidden;'
-            f'background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.008));">'
-            f'<table style="width:100%;border-collapse:collapse;">'
-            f'<thead><tr style="background:rgba(255,255,255,.03)">'
+            f'<div class="sheet-table"><table>'
+            f'<thead><tr>'
             + "".join(
-                f'<th style="text-align:{"right" if i>=5 else "left"};padding:.65rem .9rem;'
-                f'font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:#78859a;'
-                f'font-weight:600;border-bottom:1px solid var(--line-soft)">{h}</th>'
+                f'<th style="text-align:{"right" if i >= 5 else "left"}">{h}</th>'
                 for i, h in enumerate(["Transaction", "Amount", "Device", "Category", "Location", "Risk", "Verdict"]))
-            + f'</tr></thead><tbody>'
-            + rows.replace("<tr>", '<tr style="border-bottom:1px solid rgba(148,163,184,.06)">').replace(
-                "<td", '<td style="padding:.6rem .9rem"')
-            + f'</tbody></table></div>',
+            + f'</tr></thead><tbody>{rows}</tbody></table></div>',
             unsafe_allow_html=True,
         )
 
@@ -716,7 +845,7 @@ if page == "Overview":
 # DATASET EXPLORER
 # =====================================================
 elif page == "Dataset":
-    section("Data intake", "Dataset management",
+    section("01", "Dataset intake",
             "Upload your own transaction CSV or generate a fresh synthetic sample.")
 
     up_col, btn_col = st.columns([3, 1], gap="medium", vertical_alignment="center")
@@ -748,13 +877,13 @@ elif page == "Dataset":
                      if fraud_cnt and "Transaction Amount" in df.columns else 0)
 
         c1, c2, c3, c4 = st.columns(4, gap="small")
-        kpi(c1, "Total rows", f"{total_rows:,}", f"{df.shape[1]} columns", ACCENT, "▤")
-        kpi(c2, "Flagged fraud", f"{fraud_cnt:,}", f"{(fraud_cnt/total_rows*100):.2f}% of total", BAD, "▲")
-        kpi(c3, "Legitimate", f"{legit_cnt:,}", f"{(legit_cnt/total_rows*100):.2f}% of total", OK, "▼")
+        kpi(c1, "Total rows", f"{total_rows:,}", f"{df.shape[1]} columns", INK, "▤")
+        kpi(c2, "Flagged fraud", f"{fraud_cnt:,}", f"{(fraud_cnt/total_rows*100):.2f}% of total", RED, "▲")
+        kpi(c3, "Legitimate", f"{legit_cnt:,}", f"{(legit_cnt/total_rows*100):.2f}% of total", GREEN, "▼")
         kpi(c4, "Avg fraud ticket", f"₹{avg_fraud:,.0f}" if avg_fraud else "—",
-            "Mean fraud amount", WARN, "₹")
+            "Mean fraud amount", AMBER, "₹")
 
-        section("Distributions", "Class balance & ticket size")
+        section("02", "Distributions", "Class balance and ticket size on the active dataset.")
         g1, g2 = st.columns(2, gap="medium")
 
         with g1:
@@ -763,9 +892,9 @@ elif page == "Dataset":
                 cc.columns = ["Class", "Count"]
                 cc["Label"] = cc["Class"].map({0: "Legitimate", 1: "Fraud"})
                 fig = px.bar(cc, x="Label", y="Count", color="Label",
-                             color_discrete_map={"Legitimate": OK, "Fraud": BAD})
+                             color_discrete_map={"Legitimate": INK, "Fraud": RED})
                 theme(fig, 300, "Class distribution", legend=False)
-                fig.update_layout(barcornerradius=6)
+                fig.update_traces(marker_line_width=0)
                 fig.update_yaxes(title=None)
                 show(fig, "ds_bar")
 
@@ -776,14 +905,14 @@ elif page == "Dataset":
                     p["Status"] = p["fraud_prediction"].map({0: "Legitimate", 1: "Fraud"})
                     fig = px.histogram(p, x="Transaction Amount", color="Status", nbins=45,
                                        barmode="overlay",
-                                       color_discrete_map={"Legitimate": ACCENT, "Fraud": BAD})
+                                       color_discrete_map={"Legitimate": INK, "Fraud": RED})
                     theme(fig, 300, "Transaction amount distribution")
-                    fig.update_traces(opacity=0.78, marker_line_width=0)
+                    fig.update_traces(opacity=0.72, marker_line_width=0)
                     fig.update_yaxes(title=None)
                     fig.update_xaxes(title=None)
                     show(fig, "ds_hist")
 
-        section("Feature preview", "Raw records with ensemble scores")
+        section("03", "Feature preview", "Raw records with ensemble scores.")
         preview_cols = [c for c in [
             "Transaction ID", "Transaction Amount", "Quantity", "Customer Age",
             "Account Age Days", "Transaction Hour", "Device Used", "Payment Method",
@@ -811,7 +940,7 @@ elif page == "Dataset":
 # FRAUD ANALYTICS
 # =====================================================
 elif page == "Analytics":
-    section("Behavioural intelligence", "Where fraud concentrates",
+    section("01", "Where fraud concentrates",
             "Breakdowns computed on the active dataset at your current threshold.")
 
     if scored_ok and not df.empty:
@@ -823,9 +952,9 @@ elif page == "Analytics":
                     dev = fraud_df["Device Used"].value_counts().reset_index()
                     dev.columns = ["Device", "Fraud Count"]
                     fig = px.bar(dev, x="Device", y="Fraud Count", color="Device",
-                                 color_discrete_sequence=[BAD, WARN, ACCENT])
+                                 color_discrete_sequence=[RED, AMBER, INK])
                     theme(fig, 290, "Fraud by device", legend=False)
-                    fig.update_layout(barcornerradius=6)
+                    fig.update_traces(marker_line_width=0)
                     fig.update_xaxes(title=None)
                     fig.update_yaxes(title=None)
                     show(fig, "an_device")
@@ -838,9 +967,11 @@ elif page == "Analytics":
                     loc = fraud_df["Customer Location"].value_counts().head(5).reset_index()
                     loc.columns = ["Location", "Fraud Count"]
                     fig = px.bar(loc, x="Fraud Count", y="Location", orientation="h",
-                                 color="Fraud Count", color_continuous_scale=["#2a3550", ACCENT, BAD])
+                                 color="Fraud Count",
+                                 color_continuous_scale=["#e7e2d3", "#c8341f"])
                     theme(fig, 290, "Top high-risk locations", legend=False)
-                    fig.update_layout(barcornerradius=6, coloraxis_showscale=False)
+                    fig.update_traces(marker_line_width=0)
+                    fig.update_layout(coloraxis_showscale=False)
                     fig.update_yaxes(autorange="reversed", showgrid=False, title=None)
                     fig.update_xaxes(title=None)
                     show(fig, "an_loc")
@@ -853,8 +984,8 @@ elif page == "Analytics":
                     fig = go.Figure(go.Scatter(
                         x=hourly["Transaction Hour"], y=hourly["Fraud Rate (%)"],
                         mode="lines+markers",
-                        line=dict(color=CYAN, width=2.2, shape="spline"),
-                        marker=dict(size=5, color=CYAN, line=dict(width=0)),
+                        line=dict(color=INK, width=1.5, shape="spline"),
+                        marker=dict(size=4, color=RED, symbol="square", line=dict(width=0)),
                         hovertemplate="%{x}:00 · %{y:.1f}%<extra></extra>"))
                     theme(fig, 290, "Hourly fraud trend", legend=False)
                     fig.update_xaxes(dtick=4, title=None)
@@ -862,13 +993,13 @@ elif page == "Analytics":
                     show(fig, "an_hour")
 
         if "Payment Method" in df.columns and "Product Category" in df.columns:
-            section("Interaction map", "Fraud rate by category and payment method")
+            section("02", "Interaction map", "Fraud rate by category and payment method.")
             with st.container(border=True):
                 pivot = (df.pivot_table(index="Product Category", columns="Payment Method",
                                         values="fraud_prediction", aggfunc="mean") * 100)
                 fig = px.imshow(pivot.round(1), text_auto=".1f", aspect="auto",
-                                color_continuous_scale=[[0, "#0d1220"], [0.4, "#2f4b8f"],
-                                                        [0.75, ACCENT], [1, BAD]])
+                                color_continuous_scale=[[0, "#f7f5ec"], [0.4, "#e3c4b8"],
+                                                        [0.75, "#d4735f"], [1, "#8f1d0c"]])
                 theme(fig, 340, None, legend=False)
                 fig.update_layout(coloraxis_colorbar=dict(
                     title="Rate %", thickness=10, len=0.75,
@@ -876,8 +1007,7 @@ elif page == "Analytics":
                 fig.update_xaxes(side="bottom")
                 show(fig, "an_heat")
 
-    section("Evaluation", "Confusion matrix & ROC curve",
-            "Computed live from the active dataset's ground-truth labels.")
+    section("03", "Evaluation", "Confusion matrix and ROC, computed live from ground-truth labels.")
 
     ev1, ev2 = st.columns(2, gap="medium")
     has_labels = scored_ok and "is_fraud" in df.columns
@@ -904,18 +1034,18 @@ elif page == "Analytics":
 # MODEL LAB
 # =====================================================
 elif page == "Training":
-    section("Model lab", "Train & evaluate the ensemble",
+    section("01", "Train and evaluate the ensemble",
             "Re-fit StandardScaler → OneHot → SMOTE → LDA → ANN + DNN and refresh every artifact.")
 
     c1, c2, c3 = st.columns(3, gap="small")
     kpi(c1, "Balanced train rows", f"{metrics.get('train_samples_after_smote', 0):,}",
-        "After SMOTE", ACCENT, "◈")
+        "After SMOTE", INK, "◈")
     kpi(c2, "Validation rows", f"{metrics.get('val_samples', 0):,}",
-        "Held out before SMOTE", CYAN, "◇")
+        "Held out before SMOTE", INK, "◇")
     kpi(c3, "Ensemble AUC", f"{metrics.get('auc', 0):.4f}",
-        "Validation ROC-AUC", OK, "◉")
+        "Validation ROC-AUC", GREEN, "◉")
 
-    section("Actions", "Run the pipeline")
+    section("02", "Run the pipeline")
     b1, b2 = st.columns(2, gap="medium")
     with b1:
         if st.button("▶  Train ANN & DNN models", type="primary", **WIDE):
@@ -942,15 +1072,15 @@ elif page == "Training":
                 y_prob = df["fraud_probability"]
                 st.success("Evaluation complete on the active dataset.")
                 m = st.columns(5, gap="small")
-                kpi(m[0], "Accuracy", f"{accuracy_score(y_true, y_pred):.2%}", "", ACCENT)
-                kpi(m[1], "Precision", f"{precision_score(y_true, y_pred, zero_division=0):.2%}", "", CYAN)
-                kpi(m[2], "Recall", f"{recall_score(y_true, y_pred, zero_division=0):.2%}", "", OK)
-                kpi(m[3], "F1", f"{f1_score(y_true, y_pred, zero_division=0):.2%}", "", WARN)
-                kpi(m[4], "ROC-AUC", f"{roc_auc_score(y_true, y_prob):.2%}", "", BAD)
+                kpi(m[0], "Accuracy", f"{accuracy_score(y_true, y_pred):.2%}", "", INK)
+                kpi(m[1], "Precision", f"{precision_score(y_true, y_pred, zero_division=0):.2%}", "", INK)
+                kpi(m[2], "Recall", f"{recall_score(y_true, y_pred, zero_division=0):.2%}", "", GREEN)
+                kpi(m[3], "F1", f"{f1_score(y_true, y_pred, zero_division=0):.2%}", "", AMBER)
+                kpi(m[4], "ROC-AUC", f"{roc_auc_score(y_true, y_prob):.2%}", "", RED)
             else:
                 st.info("The active dataset has no ground-truth `is_fraud` labels.")
 
-    section("Artifacts", "Latest evaluation plots")
+    section("03", "Latest evaluation plots")
     q1, q2 = st.columns(2, gap="medium")
     has_labels = scored_ok and "is_fraud" in df.columns and "fraud_probability" in df.columns
     with q1:
@@ -977,7 +1107,7 @@ elif page == "Training":
 # TRANSACTION MONITOR
 # =====================================================
 elif page == "Monitor":
-    section("Monitoring", "Transaction risk monitor",
+    section("01", "Transaction risk monitor",
             "Filter the active dataset and export the slice you need.")
 
     with st.container(border=True):
@@ -1010,12 +1140,12 @@ elif page == "Monitor":
         filtered = filtered.sort_values("fraud_probability", ascending=False)
 
     s1, s2, s3 = st.columns(3, gap="small")
-    kpi(s1, "Matching", f"{len(filtered):,}", f"of {len(df):,} records", ACCENT, "☰")
+    kpi(s1, "Matching", f"{len(filtered):,}", f"of {len(df):,} records", INK, "☰")
     kpi(s2, "Flagged in view", f"{int(filtered['fraud_prediction'].sum()) if scored_ok else 0:,}",
-        f"cutoff {threshold:.0%}", BAD, "▲")
+        f"cutoff {threshold:.0%}", RED, "▲")
     kpi(s3, "Risk exposure", f"₹{filtered[filtered['fraud_prediction']==1]['Transaction Amount'].sum():,.0f}"
         if scored_ok and "Transaction Amount" in filtered.columns else "—",
-        "Sum of flagged amounts", WARN, "₹")
+        "Sum of flagged amounts", AMBER, "₹")
 
     display_cols = [c for c in [
         "Transaction ID", "Transaction Amount", "Quantity", "Account Age Days",
@@ -1052,7 +1182,7 @@ elif page == "Monitor":
 # RISK SIMULATOR
 # =====================================================
 elif page == "Predict":
-    section("Simulator", "Score a single transaction",
+    section("01", "Score a single transaction",
             "Pick a scenario or enter your own attributes to see the ensemble's decision.")
     st.markdown("<div style='height:.4rem'></div>", unsafe_allow_html=True)
 
@@ -1115,7 +1245,7 @@ elif page == "Predict":
         score = float(np.mean([ann_prob, dnn_prob]))
         is_fraud = score >= threshold
 
-        section("Result", "Ensemble decision")
+        section("02", "Ensemble decision")
         left, right = st.columns([1.05, 1], gap="medium")
 
         with left:
@@ -1123,27 +1253,31 @@ elif page == "Predict":
                 fig = go.Figure(go.Indicator(
                     mode="gauge+number",
                     value=score * 100,
-                    number={"suffix": "%", "font": {"size": 44, "color": "#f7faff", "family": "Sora"}},
+                    number={"suffix": "%",
+                            "font": {"size": 40, "color": INK, "family": "IBM Plex Mono"}},
                     gauge={
-                        "axis": {"range": [0, 100], "tickcolor": "#5f6b7d",
-                                 "tickfont": {"size": 9}, "tickwidth": 1},
-                        "bar": {"color": BAD if is_fraud else OK, "thickness": 0.28},
+                        "axis": {"range": [0, 100], "tickcolor": MUTED,
+                                 "tickfont": {"size": 9, "family": "IBM Plex Mono"},
+                                 "tickwidth": 1},
+                        "bar": {"color": RED if is_fraud else INK, "thickness": 0.26},
                         "bgcolor": "rgba(0,0,0,0)",
-                        "borderwidth": 0,
+                        "borderwidth": 1,
+                        "bordercolor": RULE,
                         "steps": [
-                            {"range": [0, threshold * 100], "color": "rgba(45,212,167,.16)"},
-                            {"range": [threshold * 100, 100], "color": "rgba(255,92,124,.16)"},
+                            {"range": [0, threshold * 100], "color": "rgba(28,107,74,.10)"},
+                            {"range": [threshold * 100, 100], "color": "rgba(200,52,31,.10)"},
                         ],
-                        "threshold": {"line": {"color": WARN, "width": 3},
-                                      "thickness": 0.8, "value": threshold * 100},
+                        "threshold": {"line": {"color": RED, "width": 2},
+                                      "thickness": 0.85, "value": threshold * 100},
                     },
                 ))
-                theme(fig, 270, None, legend=False)
+                theme(fig, 280, None, legend=False)
                 fig.update_layout(margin=dict(l=28, r=28, t=18, b=6))
                 show(fig, "pr_gauge")
                 st.markdown(
-                    f'<div style="text-align:center;font-size:.72rem;color:#78859a;'
-                    f'margin-top:-.4rem;">Threshold marker at {threshold:.0%}</div>',
+                    f'<div style="text-align:center;font-size:.6rem;letter-spacing:.14em;'
+                    f'text-transform:uppercase;color:{MUTED};margin-top:-.4rem;">'
+                    f'Threshold marker at {threshold:.0%}</div>',
                     unsafe_allow_html=True)
 
         with right:
@@ -1155,16 +1289,18 @@ elif page == "Predict":
                    f"Risk {score:.1%} is below the {threshold:.0%} cutoff — safe to approve.")
             st.markdown(
                 f'<div class="verdict {cls}">'
+                f'<div class="stamp {cls}">{"Flagged" if is_fraud else "Cleared"}</div>'
                 f'<div class="verdict-title">{icon}&nbsp; {headline}</div>'
                 f'<div class="verdict-sub">{sub}</div></div>',
-                unsafe_allow_html=True)
+                unsafe_allow_html=True,
+            )
 
             st.markdown("<div style='height:.7rem'></div>", unsafe_allow_html=True)
             m1, m2, m3 = st.columns(3, gap="small")
-            kpi(m1, "ANN", f"{ann_prob:.1%}", "128·64", ACCENT)
-            kpi(m2, "DNN", f"{dnn_prob:.1%}", "256·128·64", CYAN)
+            kpi(m1, "ANN", f"{ann_prob:.1%}", "128·64", INK)
+            kpi(m2, "DNN", f"{dnn_prob:.1%}", "256·128·64", INK)
             kpi(m3, "Ensemble", f"{score:.1%}", f"cutoff {threshold:.0%}",
-                BAD if is_fraud else OK)
+                RED if is_fraud else GREEN)
 
             signals = []
             if amt >= 50000:
@@ -1184,7 +1320,20 @@ elif page == "Predict":
             st.markdown('<div class="side-label" style="margin-top:.4rem">Risk signals</div>',
                         unsafe_allow_html=True)
             if signals:
-                chips = "".join(f'<span class="sig">▲ {s}</span>' for s in signals)
+                chips = "".join(f'<span class="sig">{s}</span>' for s in signals)
             else:
-                chips = '<span class="sig ok">✓ Normal behavioural profile detected</span>'
+                chips = '<span class="sig ok">Normal behavioural profile detected</span>'
             st.markdown(chips, unsafe_allow_html=True)
+
+# =====================================================
+# FOOTER
+# =====================================================
+st.markdown(
+    f'<div class="footer">'
+    f'<span>Sheet <b>{PAGE_NUM[page]} / 06</b> · {PAGE_TITLE[page]}</span>'
+    f'<span>QC pass · <b>{len(df):,}</b> records scored at <b>{threshold:.0%}</b></span>'
+    f'<span>Sentinel — control sheet · 2026</span>'
+    f'<a href="#top">Top ↑</a>'
+    f'</div>',
+    unsafe_allow_html=True,
+)
