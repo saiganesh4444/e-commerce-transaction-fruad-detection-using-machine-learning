@@ -1,11 +1,13 @@
 # 🛒 E-Commerce Transaction Fraud Detection System
 
-[![Streamlit App](https://img.shields.io/badge/Streamlit-Live%20Dashboard-FF4B4B?logo=streamlit&logoColor=white)](https://share.streamlit.io/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://e-commerce-transaction-fruad-detection-using-machine-learning.streamlit.app/)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-ANN%20%2B%20DNN%20%2B%20LDA-F7931E?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
 [![SMOTE](https://img.shields.io/badge/Imbalanced--Learn-SMOTE-22C55E)](https://imbalanced-learn.org/)
 
 A hybrid machine learning fraud analytics platform combining **SMOTE** class balancing, **Linear Discriminant Analysis (LDA)** feature projection, and an **ANN + DNN Neural Ensemble** with an interactive **Streamlit + Plotly** dark-mode dashboard.
+
+🌐 **Live Working URL:** [https://e-commerce-transaction-fruad-detection-using-machine-learning.streamlit.app/](https://e-commerce-transaction-fruad-detection-using-machine-learning.streamlit.app/)
 
 ---
 
@@ -39,14 +41,23 @@ flowchart LR
 
 ## 🚀 Quick Start
 
+### Option 1: Access Live Application
+Directly access the hosted application without installing anything locally:
+👉 **[https://e-commerce-transaction-fruad-detection-using-machine-learning.streamlit.app/](https://e-commerce-transaction-fruad-detection-using-machine-learning.streamlit.app/)**
+
+### Option 2: Run Locally
 ```bash
-# 1. Install dependencies
+# 1. Clone repository
+git clone https://github.com/saiganesh4444/e-commerce-transaction-fruad-detection-using-machine-learning.git
+cd e-commerce-transaction-fruad-detection-using-machine-learning
+
+# 2. Install dependencies
 pip install -r requirements.txt
 
-# 2. (Optional) Train models on transaction.csv or built-in synthetic data
+# 3. (Optional) Train models on transaction.csv or built-in synthetic data
 python train_model.py
 
-# 3. Launch the Streamlit dashboard
+# 4. Launch the Streamlit dashboard
 streamlit run app.py
 ```
 
@@ -64,9 +75,18 @@ streamlit run app.py
 ├── merge_labels.py            # Label merge utility
 ├── top_fraud.py               # Top high-risk fraud cases exporter
 ├── utils/
+│   ├── __init__.py
 │   └── data_generator.py      # Synthetic e-commerce transaction generator
 ├── model_artifacts/           # Saved preprocessor, LDA, ANN/DNN models & plots
-├── .streamlit/config.toml     # Dark fintech theme configuration
+│   ├── confusion_matrix.png
+│   ├── roc_curve.png
+│   ├── fraud_ann_model.joblib
+│   ├── fraud_dnn_model.joblib
+│   ├── lda.joblib
+│   ├── preprocessor.joblib
+│   └── metrics.json
+├── .streamlit/
+│   └── config.toml            # Dark fintech theme configuration
 └── requirements.txt           # Python dependencies
 ```
 
