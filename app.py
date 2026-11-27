@@ -455,6 +455,13 @@ p, span, label, div{color:inherit;}
 [data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar-thumb{background:var(--ink); border:3px solid var(--paper2);}
 [data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar-thumb:hover{background:var(--red);}
 [data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar-corner{background:var(--paper2);}
+/* Only shown when the sheet is too narrow to hold the column set. */
+.df-more{
+  display:none; margin:-.15rem 0 .45rem; font-family:'IBM Plex Mono', monospace;
+  font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+}
+.df-more b{color:var(--ink); font-weight:600;}
+@media (max-width:1360px){ .df-more{display:block;} }
 
 [data-testid="stAlert"]{border-radius:0; border:1px solid var(--ink); background:var(--paper2);}
 [data-testid="stAlert"] p{color:var(--ink-soft) !important;}
@@ -1095,18 +1102,20 @@ elif page == "Dataset":
         if "fraud_prediction" in view.columns:
             view["Verdict"] = view.pop("fraud_prediction").map({0: "Legitimate", 1: "Fraud"})
 
+        st.markdown('<div class="df-more">Scroll the table sideways for the remaining columns →</div>',
+                    unsafe_allow_html=True)
         st.dataframe(
             view, **WIDE, hide_index=True, height=420,
             column_config={
-                "Transaction ID": st.column_config.TextColumn("ID", width=104),
-                "Transaction Amount": st.column_config.NumberColumn("Amount", format="₹%.0f", width=88),
-                "Account Age Days": st.column_config.NumberColumn("Acct Age (d)", width=100),
-                "Transaction Hour": st.column_config.NumberColumn("Hour", width=64),
+                "Transaction ID": st.column_config.TextColumn("ID", width=96),
+                "Transaction Amount": st.column_config.NumberColumn("Amount", format="₹%.0f", width=80),
+                "Account Age Days": st.column_config.NumberColumn("Acct Age (d)", width=112),
+                "Transaction Hour": st.column_config.NumberColumn("Hour", width=56),
                 "Device Used": st.column_config.TextColumn("Device", width=84),
-                "Product Category": st.column_config.TextColumn("Category", width=96),
-                "Customer Location": st.column_config.TextColumn("Location", width=104),
+                "Product Category": st.column_config.TextColumn("Category", width=112),
+                "Customer Location": st.column_config.TextColumn("Location", width=96),
                 "Risk %": st.column_config.ProgressColumn(
-                    "Risk", min_value=0, max_value=100, format="%.1f%%", width=96),
+                    "Risk", min_value=0, max_value=100, format="%.1f%%", width=100),
                 "Verdict": st.column_config.TextColumn("Verdict", width=92),
             },
         )
@@ -1346,19 +1355,21 @@ elif page == "Monitor":
         view["Verdict"] = view.pop("fraud_prediction").map({0: "Legitimate", 1: "Fraud"})
 
     st.caption(f"Showing {len(view):,} of {len(filtered):,} matching transactions, sorted by risk.")
+    st.markdown('<div class="df-more">Scroll the table sideways for the remaining columns →</div>',
+                unsafe_allow_html=True)
     st.dataframe(
         view, **WIDE, hide_index=True, height=460,
         column_config={
-            "Transaction ID": st.column_config.TextColumn("ID", width=104),
-            "Transaction Amount": st.column_config.NumberColumn("Amount", format="₹%.0f", width=88),
-            "Account Age Days": st.column_config.NumberColumn("Acct Age (d)", width=100),
-            "Transaction Hour": st.column_config.NumberColumn("Hour", width=64),
+            "Transaction ID": st.column_config.TextColumn("ID", width=96),
+            "Transaction Amount": st.column_config.NumberColumn("Amount", format="₹%.0f", width=80),
+            "Account Age Days": st.column_config.NumberColumn("Acct Age (d)", width=112),
+            "Transaction Hour": st.column_config.NumberColumn("Hour", width=56),
             "Device Used": st.column_config.TextColumn("Device", width=84),
-            "Payment Method": st.column_config.TextColumn("Payment", width=92),
-            "Product Category": st.column_config.TextColumn("Category", width=96),
-            "Customer Location": st.column_config.TextColumn("Location", width=104),
+            "Payment Method": st.column_config.TextColumn("Payment", width=104),
+            "Product Category": st.column_config.TextColumn("Category", width=112),
+            "Customer Location": st.column_config.TextColumn("Location", width=96),
             "Risk %": st.column_config.ProgressColumn(
-                "Risk", min_value=0, max_value=100, format="%.1f%%", width=96),
+                "Risk", min_value=0, max_value=100, format="%.1f%%", width=100),
             "Verdict": st.column_config.TextColumn("Verdict", width=92),
         },
     )
