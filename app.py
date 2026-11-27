@@ -66,6 +66,18 @@ PAGE_TITLE = {
     "Monitor": "Monitor",
     "Predict": "Predict",
 }
+PAGE_DESC = {
+    "Dataset": "Upload a transaction file or generate a synthetic sample, then inspect "
+               "class balance and ticket size before scoring.",
+    "Analytics": "Where fraud concentrates — by device, location, hour, product category "
+                 "and payment method, at your current cutoff.",
+    "Training": "Re-fit the scaler, SMOTE balance, LDA projection and both networks, "
+                "then review the evaluation plots.",
+    "Monitor": "Filter the active dataset by status, device, location and minimum risk, "
+               "then export the exact slice you need.",
+    "Predict": "Score a single transaction through the ensemble and read the verdict, "
+               "model votes and behavioural risk signals.",
+}
 
 # =====================================================
 # GLOBAL STYLES
@@ -98,21 +110,47 @@ html, body, [class*="css"], .stApp, [data-testid="stAppViewContainer"]{
   color:var(--ink);
 }
 
-header[data-testid="stHeader"]{background:transparent; height:0; overflow:visible;}
-#MainMenu, footer, header [data-testid="stToolbar"], [data-testid="stDecoration"],
-[data-testid="stAppDeployButton"], [data-testid="stMainMenu"]{display:none;}
-[data-testid="stExpandSidebarButton"]{
-  visibility:visible !important; display:inline-flex !important;
-  position:fixed; top:10px; left:10px; z-index:999;
-  width:34px; height:26px; align-items:center; justify-content:center;
-  background:var(--ink); color:var(--paper); border:1px solid var(--ink);
-  border-radius:0; padding:0; opacity:.92;
+header[data-testid="stHeader"]{
+  background:transparent; min-height:0 !important; height:0; overflow:visible; pointer-events:none;
 }
-[data-testid="stExpandSidebarButton"]:hover{opacity:1; background:var(--red); border-color:var(--red);}
-[data-testid="stExpandSidebarButton"] svg{fill:var(--paper);}
+#MainMenu, footer, [data-testid="stDecoration"], [data-testid="stAppDeployButton"],
+[data-testid="stMainMenu"], [data-testid="stMainMenuButton"],
+[data-testid="stToolbarActions"], [data-testid="stStatusWidget"]{display:none !important;}
+header[data-testid="stHeader"] [data-testid="stToolbar"]{
+  display:flex !important; align-items:center; gap:0; width:auto; height:auto;
+  min-height:0; padding:0; margin:0; background:transparent;
+}
+/* reopen control — only rendered while the sidebar is collapsed */
+[data-testid="stExpandSidebarButton"]{
+  display:inline-flex !important; align-items:center; justify-content:center;
+  position:fixed; top:12px; right:12px; z-index:1000; pointer-events:auto;
+  width:40px; height:32px; padding:0; margin:0;
+  background:var(--ink); color:var(--paper); border:1px solid var(--ink);
+  border-radius:0; box-shadow:none;
+  transition:background .12s ease, border-color .12s ease;
+}
+[data-testid="stExpandSidebarButton"]:hover{background:var(--red); border-color:var(--red);}
+[data-testid="stExpandSidebarButton"] [data-testid="stIconMaterial"],
+[data-testid="stExpandSidebarButton"] span{
+  color:var(--paper) !important; font-size:18px !important; line-height:1;
+}
+[data-testid="stExpandSidebarButton"]::after{
+  content:"INDEX"; position:absolute; right:calc(100% + 7px); top:50%;
+  transform:translateY(-50%); padding:.14rem .32rem;
+  font-size:.54rem; letter-spacing:.18em; color:var(--ink);
+  background:var(--paper); border:1px solid var(--rule); white-space:nowrap;
+  opacity:0; pointer-events:none; transition:opacity .12s ease;
+}
+[data-testid="stExpandSidebarButton"]:hover::after{opacity:1;}
+body:has([data-testid="stSidebar"][data-collapsed="false"]) [data-testid="stExpandSidebarButton"]{
+  display:none !important;
+}
 
+html{scroll-behavior:smooth;}
+::selection{background:var(--red); color:var(--paper);}
+:focus-visible{outline:2px solid var(--red); outline-offset:2px;}
 .block-container{
-  padding-top:1.4rem; padding-bottom:1rem; max-width:1400px;
+  padding-top:1.2rem; padding-bottom:1rem; max-width:1400px;
   animation:sheet .35s ease both;
 }
 @keyframes sheet{from{opacity:0;} to{opacity:1;}}
@@ -134,7 +172,7 @@ header[data-testid="stHeader"]{background:transparent; height:0; overflow:visibl
 
 .masthead{
   position:relative; overflow:hidden; border:1px solid var(--ink); background:var(--paper2);
-  padding:1.6rem 1.7rem 1.2rem; margin-bottom:.75rem;
+  padding:1.5rem 1.6rem 1.1rem; margin-bottom:.7rem;
 }
 .masthead::before, .masthead::after{
   content:"+"; position:absolute; font-size:.8rem; color:var(--ink); line-height:1;
@@ -148,8 +186,9 @@ header[data-testid="stHeader"]{background:transparent; height:0; overflow:visibl
 }
 .masthead h1{
   font-family:'IBM Plex Mono', monospace; font-weight:600;
-  font-size:2.85rem; line-height:1.02; letter-spacing:-.045em;
+  font-size:2.6rem; line-height:1.04; letter-spacing:-.045em;
   color:var(--ink); margin:0 0 .55rem 0; text-transform:uppercase;
+  text-wrap:balance;
 }
 .masthead h1 .slash{color:var(--red);}
 .mast-role{
@@ -163,16 +202,16 @@ header[data-testid="stHeader"]{background:transparent; height:0; overflow:visibl
 }
 .mast-meta{
   display:grid; grid-template-columns:repeat(5,minmax(0,1fr));
-  border-top:1px solid var(--ink); margin:0 -1.7rem;
+  border-top:1px solid var(--ink); margin:0 -1.6rem;
 }
-.mast-cell{padding:.6rem 1.7rem .1rem; border-right:1px solid var(--rule);}
+.mast-cell{padding:.6rem 1.6rem .1rem; border-right:1px solid var(--rule);}
 .mast-cell:last-child{border-right:none;}
 .mast-k{display:block; font-size:.57rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:.2rem;}
 .mast-v{display:block; font-size:.82rem; font-weight:600; color:var(--ink); letter-spacing:.02em;}
 .mast-v.red{color:var(--red);}
 
 .ticker{
-  overflow:hidden; border-bottom:1px solid var(--ink); margin-bottom:1.9rem;
+  overflow:hidden; border-bottom:1px solid var(--ink); margin-bottom:1.2rem;
   padding:.4rem 0; background:transparent;
 }
 .ticker-track{
@@ -190,6 +229,10 @@ section[data-testid="stSidebar"]{
 }
 section[data-testid="stSidebar"] > div{padding-top:.9rem;}
 section[data-testid="stSidebar"] .block-container{padding-top:.4rem;}
+[data-testid="stSidebarHeader"]{height:0 !important; min-height:0 !important; padding:0 !important;}
+[data-testid="stSidebarCollapseButton"]{
+  position:absolute !important; top:16px; right:14px; z-index:6;
+}
 
 .brand{display:flex; align-items:stretch; gap:.65rem; padding:0 0 1rem; border-bottom:1px solid var(--ink); margin-bottom:.9rem;}
 .brand-mark{
@@ -254,6 +297,23 @@ section[data-testid="stSidebar"] .stButton > button:focus:not(:active){border-co
   text-transform:uppercase;
 }
 
+/* sidebar collapse control */
+[data-testid="stSidebarCollapseButton"] button{
+  display:inline-flex !important; align-items:center; justify-content:center;
+  width:30px !important; height:28px !important; padding:0 !important;
+  background:transparent; border:1px solid var(--rule); border-radius:0;
+  transition:background .12s ease, border-color .12s ease;
+}
+[data-testid="stSidebarCollapseButton"] button:hover{
+  background:var(--ink); border-color:var(--ink);
+}
+[data-testid="stSidebarCollapseButton"] [data-testid="stIconMaterial"]{
+  color:var(--ink-soft) !important; font-size:16px !important; line-height:1;
+}
+[data-testid="stSidebarCollapseButton"] button:hover [data-testid="stIconMaterial"]{
+  color:var(--paper) !important;
+}
+
 /* ---------- GENERIC BUTTONS ---------- */
 .stButton > button, .stDownloadButton > button, .stFormSubmitButton > button{
   border-radius:0; font-family:'IBM Plex Mono', monospace;
@@ -282,7 +342,7 @@ section[data-testid="stSidebar"] .stButton > button:focus:not(:active){border-co
 /* ---------- SECTION HEADINGS ---------- */
 .sec{
   display:flex; flex-wrap:wrap; align-items:baseline; gap:.7rem;
-  border-top:2px solid var(--ink); margin:2.4rem 0 1rem; padding-top:.55rem;
+  border-top:2px solid var(--ink); margin:1.9rem 0 .85rem; padding-top:.55rem;
 }
 .sec-num{
   font-size:.68rem; font-weight:600; letter-spacing:.1em; color:var(--paper);
@@ -317,7 +377,7 @@ section[data-testid="stSidebar"] .stButton > button:focus:not(:active){border-co
 .kpi-ico{font-size:.72rem; color:var(--red); line-height:1;}
 .kpi-value{
   font-size:1.7rem; font-weight:500; color:var(--ink); letter-spacing:-.045em;
-  margin-top:.5rem; line-height:1;
+  margin-top:.5rem; line-height:1; font-variant-numeric:tabular-nums;
 }
 .kpi:hover .kpi-value{color:var(--paper);}
 .kpi-delta{font-size:.6rem; color:var(--muted); margin-top:.45rem; letter-spacing:.05em; text-transform:uppercase;}
@@ -337,9 +397,10 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div{padding:.55rem .7rem .35re
 
 /* ---------- MISC NATIVE OVERRIDES ---------- */
 p, span, label, div{color:inherit;}
-[data-testid="stMarkdownContainer"] p{font-size:.78rem; color:var(--ink-soft); line-height:1.75;}
+[data-testid="stMarkdownContainer"] p:not([class]){font-size:.78rem; color:var(--ink-soft); line-height:1.75;}
 [data-testid="stWidgetLabel"] p{font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); font-weight:500;}
 [data-testid="stCaptionContainer"], .stCaption{color:var(--muted) !important; font-size:.62rem !important; letter-spacing:.06em; text-transform:uppercase;}
+[data-testid="stCaptionContainer"]{margin-top:.7rem;}
 
 [data-testid="stSlider"] [role="slider"]{background:var(--ink); border:1px solid var(--ink); box-shadow:none; border-radius:0;}
 [data-testid="stSlider"] [data-testid="stTickBar"]{background:transparent;}
@@ -380,7 +441,7 @@ hr{border:none; border-top:1px solid var(--rule) !important;}
   text-transform:uppercase; color:var(--muted); font-weight:500;
   border-bottom:1px solid var(--ink); background:var(--paper);
 }
-.sheet-table td{padding:.5rem .7rem; font-size:.7rem; color:var(--ink-soft); border-bottom:1px dotted var(--rule); white-space:nowrap;}
+.sheet-table td{padding:.5rem .7rem; font-size:.7rem; color:var(--ink-soft); border-bottom:1px dotted var(--rule); white-space:nowrap; font-variant-numeric:tabular-nums;}
 .sheet-table tr:last-child td{border-bottom:none;}
 .sheet-table tr:hover td{background:rgba(18,17,15,.035);}
 .sheet-table td.strong{color:var(--ink); font-weight:600;}
@@ -432,18 +493,45 @@ hr{border:none; border-top:1px solid var(--rule) !important;}
 .footer b{color:var(--ink); font-weight:600;}
 .footer a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--ink);}
 
+/* ---------- PAGE HEADER (non-overview sheets) ---------- */
+.page-head{
+  border:1px solid var(--ink); border-top:2px solid var(--ink);
+  background:var(--paper2); padding:1rem 1.15rem 1.05rem; margin-bottom:0;
+}
+.ph-eyebrow{
+  display:flex; flex-wrap:wrap; justify-content:space-between; gap:.5rem;
+  font-size:.58rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted);
+  border-bottom:1px dashed var(--rule); padding-bottom:.45rem; margin-bottom:.8rem;
+}
+.ph-body{
+  display:grid; grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);
+  gap:.35rem 2rem; align-items:baseline;
+}
+.ph-title{
+  font-size:1.65rem; font-weight:600; letter-spacing:-.03em; line-height:1.15;
+  text-transform:uppercase; color:var(--ink);
+}
+.ph-desc{font-size:.76rem; line-height:1.75; color:var(--ink-soft); max-width:72ch;}
+
 /* ---------- NARROW VIEWPORTS ---------- */
 @media(max-width:1100px){
   .masthead h1{font-size:2.1rem;}
-  .mast-meta{grid-template-columns:repeat(2,minmax(0,1fr)); margin:0 -1.7rem;}
+  .mast-meta{grid-template-columns:repeat(2,minmax(0,1fr)); margin:0 -1.6rem;}
   .mast-cell{border-bottom:1px solid var(--rule); padding-bottom:.45rem;}
   .mast-cell:nth-child(2n){border-right:none;}
   .verdict-title{padding-right:0;}
 }
+@media(max-width:800px){
+  [data-testid="stExpandSidebarButton"]{top:8px; right:8px; width:38px; height:30px;}
+}
 @media(max-width:760px){
-  .masthead h1{font-size:1.6rem;}
+  .masthead h1{font-size:1.5rem;}
+  .mast-meta{grid-template-columns:1fr; margin:0 -1.6rem;}
+  .mast-cell{border-right:none; padding-right:1.6rem;}
   .topbar{font-size:.55rem;}
   .sec-title{font-size:.8rem;}
+  .ph-body{grid-template-columns:1fr; gap:.3rem;}
+  .ph-title{font-size:1.35rem;}
 }
 </style>
 """
@@ -545,6 +633,21 @@ def section(num, title, sub=""):
         f'<span class="sec-title">{title}</span>'
         + (f'<p class="sec-sub">{sub}</p>' if sub else "")
         + "</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def page_head(page, rows, threshold):
+    """Compact sheet header used on every page except the Overview masthead."""
+    st.markdown(
+        f'<div class="page-head" id="top">'
+        f'<div class="ph-eyebrow"><span>Sheet {PAGE_NUM[page]} / 06</span>'
+        f'<span>{PAGE_TITLE[page]}</span>'
+        f'<span>{rows:,} records · cutoff {threshold:.0%}</span></div>'
+        f'<div class="ph-body">'
+        f'<div class="ph-title">{PAGE_TITLE[page]}</div>'
+        f'<div class="ph-desc">{PAGE_DESC[page]}</div>'
+        f'</div></div>',
         unsafe_allow_html=True,
     )
 
@@ -741,13 +844,7 @@ if page == "Overview":
     st.markdown(f'<div class="ticker"><div class="ticker-track">{tick}{tick}</div></div>',
                 unsafe_allow_html=True)
 else:
-    st.markdown(
-        f'<div class="mast-eyebrow" style="border-top:2px solid var(--ink);padding-top:.5rem;">'
-        f'<span>Sheet {PAGE_NUM[page]} / 06</span>'
-        f'<span>{PAGE_TITLE[page]}</span>'
-        f'<span>{len(df):,} records · cutoff {threshold:.0%}</span></div>',
-        unsafe_allow_html=True,
-    )
+    page_head(page, len(df), threshold)
 
 # common chart datasets
 hourly = pd.DataFrame()
@@ -846,7 +943,7 @@ if page == "Overview":
                     else '<span class="pill ok">Legit</span>')
             rows += (
                 f'<tr><td>{r.get("Transaction ID", "—")}</td>'
-                f'<td class="strong">₹{r.get("Transaction Amount", 0):,.0f}</td>'
+                f'<td class="strong" style="text-align:right">₹{r.get("Transaction Amount", 0):,.0f}</td>'
                 f'<td>{r.get("Device Used", "—")}</td>'
                 f'<td>{r.get("Product Category", "—")}</td>'
                 f'<td>{r.get("Customer Location", "—")}</td>'
@@ -858,10 +955,16 @@ if page == "Overview":
             f'<div class="sheet-table"><table>'
             f'<thead><tr>'
             + "".join(
-                f'<th style="text-align:{"right" if i >= 5 else "left"}">{h}</th>'
+                f'<th style="text-align:{"right" if i in (1, 5, 6) else "left"}">{h}</th>'
                 for i, h in enumerate(["Transaction", "Amount", "Device", "Category", "Location", "Risk", "Verdict"]))
             + f'</tr></thead><tbody>{rows}</tbody></table></div>',
             unsafe_allow_html=True,
+        )
+        st.download_button(
+            "⬇  Export priority queue (CSV)",
+            data=top.to_csv(index=False).encode("utf-8"),
+            file_name="priority_queue.csv",
+            mime="text/csv",
         )
 
 
