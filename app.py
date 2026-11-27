@@ -120,6 +120,7 @@ header[data-testid="stHeader"] [data-testid="stToolbar"]{
   display:flex !important; align-items:center; gap:0; width:auto; height:auto;
   min-height:0; padding:0; margin:0; background:transparent;
 }
+[data-testid="stHeaderActionElements"]{display:none !important;}
 /* reopen control — only rendered while the sidebar is collapsed */
 [data-testid="stExpandSidebarButton"]{
   display:inline-flex !important; align-items:center; justify-content:center;
@@ -164,7 +165,7 @@ html{scroll-behavior:smooth;}
 .topbar{
   display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6rem;
   border-top:2px solid var(--ink); border-bottom:1px solid var(--ink);
-  padding:.4rem 0; margin-bottom:1.1rem;
+  padding:.4rem 0; margin-bottom:0;
   font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft);
 }
 .topbar b{color:var(--ink); font-weight:600;}
@@ -172,7 +173,7 @@ html{scroll-behavior:smooth;}
 
 .masthead{
   position:relative; overflow:hidden; border:1px solid var(--ink); background:var(--paper2);
-  padding:1.5rem 1.6rem 1.1rem; margin-bottom:.7rem;
+  padding:1.5rem 1.6rem 1.1rem; margin-bottom:0;
 }
 .masthead::before, .masthead::after{
   content:"+"; position:absolute; font-size:.8rem; color:var(--ink); line-height:1;
@@ -211,7 +212,7 @@ html{scroll-behavior:smooth;}
 .mast-v.red{color:var(--red);}
 
 .ticker{
-  overflow:hidden; border-bottom:1px solid var(--ink); margin-bottom:1.2rem;
+  overflow:hidden; border-bottom:1px solid var(--ink); margin-bottom:0;
   padding:.4rem 0; background:transparent;
 }
 .ticker-track{
@@ -342,7 +343,7 @@ section[data-testid="stSidebar"] .stButton > button:focus:not(:active){border-co
 /* ---------- SECTION HEADINGS ---------- */
 .sec{
   display:flex; flex-wrap:wrap; align-items:baseline; gap:.7rem;
-  border-top:2px solid var(--ink); margin:1.9rem 0 .85rem; padding-top:.55rem;
+  border-top:2px solid var(--ink); margin:.9rem 0 0; padding-top:.55rem;
 }
 .sec-num{
   font-size:.68rem; font-weight:600; letter-spacing:.1em; color:var(--paper);
@@ -363,9 +364,13 @@ section[data-testid="stSidebar"] .stButton > button:focus:not(:active){border-co
   display:grid; gap:.75rem; align-items:stretch;
   grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));
 }
-/* Streamlit trims 1rem off every markdown container; on a grid that leaves the
-   wrapper 16px shorter than the cards, so they spill into the next gap. */
-[data-testid="stMarkdownContainer"]:has(.kpi-grid){margin-bottom:0 !important;}
+/* Streamlit trims 1rem off every markdown container. Our blocks have no
+   paragraph margins to trim, so the wrapper ends up 16px shorter than the
+   block and the next element starts inside it. Neutralise it for every
+   custom block in the main column; the sidebar keeps its own rhythm. */
+[data-testid="stMain"] [data-testid="stMarkdownContainer"]:has(> div[class]){
+  margin-bottom:0 !important;
+}
 .kpi{
   position:relative; overflow:hidden;
   background:var(--paper2);
@@ -496,7 +501,7 @@ hr{border:none; border-top:1px solid var(--rule) !important;}
 /* ---------- FOOTER ---------- */
 .footer{
   display:flex; flex-wrap:wrap; justify-content:space-between; gap:.6rem;
-  border-top:1px solid var(--ink); margin-top:3rem; padding-top:.6rem;
+  border-top:1px solid var(--ink); margin-top:2rem; padding-top:.6rem;
   font-size:.58rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted);
 }
 .footer b{color:var(--ink); font-weight:600;}
