@@ -364,6 +364,12 @@ section[data-testid="stSidebar"] .stButton > button:focus:not(:active){border-co
   display:grid; gap:.75rem; align-items:stretch;
   grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));
 }
+/* Rows nested in a Streamlit column (the Predict model votes) pick their own
+   track count, so a half-width column stacks them instead of squeezing the
+   value into a one-character-per-line column. */
+[data-testid="stColumn"] .kpi-grid{
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+}
 /* Streamlit trims 1rem off every markdown container. Our blocks have no
    paragraph margins to trim, so the wrapper ends up 16px shorter than the
    block and the next element starts inside it. Neutralise it for every
@@ -392,6 +398,7 @@ section[data-testid="stSidebar"] .stButton > button:focus:not(:active){border-co
 .kpi-value{
   font-size:1.7rem; font-weight:500; color:var(--ink); letter-spacing:-.045em;
   margin-top:.5rem; line-height:1; font-variant-numeric:tabular-nums;
+  white-space:nowrap;
 }
 .kpi:hover .kpi-value{color:var(--paper);}
 .kpi-delta{font-size:.6rem; color:var(--muted); margin-top:.45rem; letter-spacing:.05em; text-transform:uppercase;}
