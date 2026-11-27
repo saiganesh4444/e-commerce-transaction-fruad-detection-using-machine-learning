@@ -448,6 +448,13 @@ p, span, label, div{color:inherit;}
 
 [data-testid="stDataFrame"]{border:1px solid var(--ink); border-radius:0; overflow:hidden; background:var(--paper2);}
 [data-testid="stDataFrame"] *{font-family:'IBM Plex Mono', monospace !important;}
+/* Glide hides its scrollbars, so overflow read as clipped columns. */
+[data-testid="stDataFrame"] .dvn-scroller{scrollbar-width:thin; scrollbar-color:var(--ink) var(--paper2);}
+[data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar{width:11px; height:11px;}
+[data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar-track{background:var(--paper2);}
+[data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar-thumb{background:var(--ink); border:3px solid var(--paper2);}
+[data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar-thumb:hover{background:var(--red);}
+[data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar-corner{background:var(--paper2);}
 
 [data-testid="stAlert"]{border-radius:0; border:1px solid var(--ink); background:var(--paper2);}
 [data-testid="stAlert"] p{color:var(--ink-soft) !important;}
@@ -1077,9 +1084,9 @@ elif page == "Dataset":
 
         section("03", "Feature preview", "Raw records with ensemble scores.")
         preview_cols = [c for c in [
-            "Transaction ID", "Transaction Amount", "Quantity", "Customer Age",
-            "Account Age Days", "Transaction Hour", "Device Used", "Payment Method",
-            "Product Category", "Customer Location", "fraud_probability", "fraud_prediction",
+            "Transaction ID", "Transaction Amount", "Account Age Days",
+            "Transaction Hour", "Device Used", "Product Category",
+            "Customer Location", "fraud_probability", "fraud_prediction",
         ] if c in df.columns]
 
         view = df[preview_cols].head(200).copy()
@@ -1091,10 +1098,16 @@ elif page == "Dataset":
         st.dataframe(
             view, **WIDE, hide_index=True, height=420,
             column_config={
-                "Transaction Amount": st.column_config.NumberColumn("Amount", format="₹%.0f"),
+                "Transaction ID": st.column_config.TextColumn("ID", width=104),
+                "Transaction Amount": st.column_config.NumberColumn("Amount", format="₹%.0f", width=88),
+                "Account Age Days": st.column_config.NumberColumn("Acct Age (d)", width=100),
+                "Transaction Hour": st.column_config.NumberColumn("Hour", width=64),
+                "Device Used": st.column_config.TextColumn("Device", width=84),
+                "Product Category": st.column_config.TextColumn("Category", width=96),
+                "Customer Location": st.column_config.TextColumn("Location", width=104),
                 "Risk %": st.column_config.ProgressColumn(
-                    "Risk", min_value=0, max_value=100, format="%.1f%%"),
-                "Verdict": st.column_config.TextColumn("Verdict", width="small"),
+                    "Risk", min_value=0, max_value=100, format="%.1f%%", width=96),
+                "Verdict": st.column_config.TextColumn("Verdict", width=92),
             },
         )
 
@@ -1313,8 +1326,15 @@ elif page == "Monitor":
          "Sum of flagged amounts", "₹"),
     ])
 
-    display_cols = [c for c in [
+    csv_cols = [c for c in [
         "Transaction ID", "Transaction Amount", "Quantity", "Account Age Days",
+        "Transaction Hour", "Device Used", "Payment Method", "Product Category",
+        "Customer Location", "fraud_probability", "fraud_prediction",
+    ] if c in filtered.columns]
+
+    # The on-screen set is trimmed to what fits the sheet; the CSV keeps every column.
+    display_cols = [c for c in [
+        "Transaction ID", "Transaction Amount", "Account Age Days",
         "Transaction Hour", "Device Used", "Payment Method", "Product Category",
         "Customer Location", "fraud_probability", "fraud_prediction",
     ] if c in filtered.columns]
@@ -1329,16 +1349,23 @@ elif page == "Monitor":
     st.dataframe(
         view, **WIDE, hide_index=True, height=460,
         column_config={
-            "Transaction Amount": st.column_config.NumberColumn("Amount", format="₹%.0f"),
+            "Transaction ID": st.column_config.TextColumn("ID", width=104),
+            "Transaction Amount": st.column_config.NumberColumn("Amount", format="₹%.0f", width=88),
+            "Account Age Days": st.column_config.NumberColumn("Acct Age (d)", width=100),
+            "Transaction Hour": st.column_config.NumberColumn("Hour", width=64),
+            "Device Used": st.column_config.TextColumn("Device", width=84),
+            "Payment Method": st.column_config.TextColumn("Payment", width=92),
+            "Product Category": st.column_config.TextColumn("Category", width=96),
+            "Customer Location": st.column_config.TextColumn("Location", width=104),
             "Risk %": st.column_config.ProgressColumn(
-                "Risk", min_value=0, max_value=100, format="%.1f%%"),
-            "Verdict": st.column_config.TextColumn("Verdict", width="small"),
+                "Risk", min_value=0, max_value=100, format="%.1f%%", width=96),
+            "Verdict": st.column_config.TextColumn("Verdict", width=92),
         },
     )
 
     st.download_button(
         "⬇  Download filtered transactions (CSV)",
-        data=filtered[display_cols].to_csv(index=False).encode("utf-8"),
+        data=filtered[csv_cols].to_csv(index=False).encode("utf-8"),
         file_name="filtered_fraud_transactions.csv",
         mime="text/csv",
     )
