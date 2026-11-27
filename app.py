@@ -516,6 +516,20 @@ p, span, label, div{color:inherit;}
 
 [data-testid="stDataFrame"]{border:1px solid var(--ink); border-radius:0; overflow:hidden; background:var(--paper2);}
 [data-testid="stDataFrame"] *{font-family:'IBM Plex Mono', monospace !important;}
+/* Streamlit's global rule paints every scrollbar transparent until hover, which
+   leaves the grid's own horizontal bar invisible on the paper track. It is the
+   only cue that more columns wait off the right edge, so keep it drawn. */
+[data-testid="stDataFrame"] .dvn-scroller{
+  scrollbar-width:auto; scrollbar-color:var(--ink) var(--paper);
+}
+[data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar{height:12px; width:12px;}
+[data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar-track{
+  background:var(--paper); border-top:1px solid var(--rule);
+}
+[data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar-thumb{
+  background:var(--ink); border:3px solid var(--paper);
+}
+[data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar-thumb:hover{background:var(--red);}
 /* The note is switched on by the overflow watcher only while the grid really
    scrolls sideways; see the OVERFLOW WATCHER script near the tables. */
 .df-more{
