@@ -7,6 +7,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
 
 from train_model import train_pipeline
 from utils.data_generator import (
@@ -48,6 +49,73 @@ def _streamlit_minor() -> tuple:
 
 
 WIDE = {"width": "stretch"} if _streamlit_minor() >= (1, 49) else {"use_container_width": True}
+
+
+# =====================================================
+# TABLE OVERFLOW NOTE
+# =====================================================
+# The sideways-scroll note follows the grid's real overflow, not the viewport
+# width: a wide window with the sidebar open can still be too narrow for the
+# column set, and a narrow one fits once the sidebar is collapsed.
+_OVERFLOW_WATCHER = """<script>
+(function () {
+  var doc;
+  try { doc = window.parent.document; } catch (e) { return; }
+  var FOLLOWING = 4;
+  function scrollerOf(frame) {
+    var sc = frame.querySelector('.dvn-scroller');
+    if (sc) return sc;
+    var kids = frame.querySelectorAll('*');
+    for (var i = 0; i < kids.length; i++) {
+      var el = kids[i];
+      if (el.clientWidth && /^(auto|scroll)$/.test(getComputedStyle(el).overflowX)) return el;
+    }
+    return null;
+  }
+  function frameAfter(note) {
+    var frames = doc.querySelectorAll('[data-testid="stDataFrame"]');
+    for (var i = 0; i < frames.length; i++) {
+      if (note.compareDocumentPosition(frames[i]) & FOLLOWING) return frames[i];
+    }
+    return null;
+  }
+  function sync() {
+    var notes = doc.querySelectorAll('.df-more');
+    for (var i = 0; i < notes.length; i++) {
+      var note = notes[i];
+      var frame = frameAfter(note);
+      var sc = frame && scrollerOf(frame);
+      var over = !!sc && sc.scrollWidth - sc.clientWidth > 1;
+      if (over) {
+        if (note.getAttribute('data-overflow') !== '1') note.setAttribute('data-overflow', '1');
+      } else if (note.hasAttribute('data-overflow')) {
+        note.removeAttribute('data-overflow');
+      }
+    }
+  }
+  var pending = false;
+  function schedule() {
+    if (pending) return;
+    pending = true;
+    setTimeout(function () { pending = false; sync(); }, 80);
+  }
+  try { new MutationObserver(schedule).observe(doc.body, { childList: true, subtree: true }); } catch (e) {}
+  window.parent.addEventListener('resize', schedule);
+  setInterval(sync, 700);
+  sync();
+})();
+</script>"""
+
+
+def overflow_note():
+    """Mark where the sideways-scroll note sits; it stays hidden until the grid overflows."""
+    st.markdown('<div class="df-more">Scroll the table sideways for the remaining columns →</div>',
+                unsafe_allow_html=True)
+
+
+def watch_table_overflow():
+    """Reveal the note above this table only while its grid really scrolls sideways."""
+    components.html(_OVERFLOW_WATCHER, height=0)
 
 NAV = [
     ("Overview", "01"),
@@ -448,20 +516,18 @@ p, span, label, div{color:inherit;}
 
 [data-testid="stDataFrame"]{border:1px solid var(--ink); border-radius:0; overflow:hidden; background:var(--paper2);}
 [data-testid="stDataFrame"] *{font-family:'IBM Plex Mono', monospace !important;}
-/* Glide hides its scrollbars, so overflow read as clipped columns. */
-[data-testid="stDataFrame"] .dvn-scroller{scrollbar-width:thin; scrollbar-color:var(--ink) var(--paper2);}
-[data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar{width:11px; height:11px;}
-[data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar-track{background:var(--paper2);}
-[data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar-thumb{background:var(--ink); border:3px solid var(--paper2);}
-[data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar-thumb:hover{background:var(--red);}
-[data-testid="stDataFrame"] .dvn-scroller::-webkit-scrollbar-corner{background:var(--paper2);}
-/* Only shown when the sheet is too narrow to hold the column set. */
+/* The note is switched on by the overflow watcher only while the grid really
+   scrolls sideways; see the OVERFLOW WATCHER script near the tables. */
 .df-more{
   display:none; margin:-.15rem 0 .45rem; font-family:'IBM Plex Mono', monospace;
   font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
 }
+.df-more[data-overflow="1"]{display:block;}
 .df-more b{color:var(--ink); font-weight:600;}
-@media (max-width:1360px){ .df-more{display:block;} }
+/* Zero-height component that carries the measuring script; must not take space. */
+[data-testid="stElementContainer"]:has(> [data-testid="stIFrame"]){
+  position:absolute; height:0; overflow:hidden; pointer-events:none;
+}
 
 [data-testid="stAlert"]{border-radius:0; border:1px solid var(--ink); background:var(--paper2);}
 [data-testid="stAlert"] p{color:var(--ink-soft) !important;}
@@ -1102,8 +1168,7 @@ elif page == "Dataset":
         if "fraud_prediction" in view.columns:
             view["Verdict"] = view.pop("fraud_prediction").map({0: "Legitimate", 1: "Fraud"})
 
-        st.markdown('<div class="df-more">Scroll the table sideways for the remaining columns →</div>',
-                    unsafe_allow_html=True)
+        overflow_note()
         st.dataframe(
             view, **WIDE, hide_index=True, height=420,
             column_config={
@@ -1119,6 +1184,7 @@ elif page == "Dataset":
                 "Verdict": st.column_config.TextColumn("Verdict", width=92),
             },
         )
+        watch_table_overflow()
 
 
 # =====================================================
@@ -1355,8 +1421,7 @@ elif page == "Monitor":
         view["Verdict"] = view.pop("fraud_prediction").map({0: "Legitimate", 1: "Fraud"})
 
     st.caption(f"Showing {len(view):,} of {len(filtered):,} matching transactions, sorted by risk.")
-    st.markdown('<div class="df-more">Scroll the table sideways for the remaining columns →</div>',
-                unsafe_allow_html=True)
+    overflow_note()
     st.dataframe(
         view, **WIDE, hide_index=True, height=460,
         column_config={
@@ -1373,6 +1438,7 @@ elif page == "Monitor":
             "Verdict": st.column_config.TextColumn("Verdict", width=92),
         },
     )
+    watch_table_overflow()
 
     st.download_button(
         "⬇  Download filtered transactions (CSV)",
