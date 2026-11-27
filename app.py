@@ -357,6 +357,15 @@ section[data-testid="stSidebar"] .stButton > button:focus:not(:active){border-co
 }
 
 /* ---------- KPI CARDS ---------- */
+/* A grid row sizes itself to the tallest card, so cards can never spill
+   past the row and collide with whatever follows. */
+.kpi-grid{
+  display:grid; gap:.75rem; align-items:stretch;
+  grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));
+}
+/* Streamlit trims 1rem off every markdown container; on a grid that leaves the
+   wrapper 16px shorter than the cards, so they spill into the next gap. */
+[data-testid="stMarkdownContainer"]:has(.kpi-grid){margin-bottom:0 !important;}
 .kpi{
   position:relative; overflow:hidden;
   background:var(--paper2);
@@ -400,7 +409,7 @@ p, span, label, div{color:inherit;}
 [data-testid="stMarkdownContainer"] p:not([class]){font-size:.78rem; color:var(--ink-soft); line-height:1.75;}
 [data-testid="stWidgetLabel"] p{font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); font-weight:500;}
 [data-testid="stCaptionContainer"], .stCaption{color:var(--muted) !important; font-size:.62rem !important; letter-spacing:.06em; text-transform:uppercase;}
-[data-testid="stCaptionContainer"]{margin-top:.7rem;}
+
 
 [data-testid="stSlider"] [role="slider"]{background:var(--ink); border:1px solid var(--ink); box-shadow:none; border-radius:0;}
 [data-testid="stSlider"] [data-testid="stTickBar"]{background:transparent;}
@@ -515,6 +524,7 @@ hr{border:none; border-top:1px solid var(--rule) !important;}
 
 /* ---------- NARROW VIEWPORTS ---------- */
 @media(max-width:1100px){
+  .kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
   .masthead h1{font-size:2.1rem;}
   .mast-meta{grid-template-columns:repeat(2,minmax(0,1fr)); margin:0 -1.6rem;}
   .mast-cell{border-bottom:1px solid var(--rule); padding-bottom:.45rem;}
@@ -525,6 +535,7 @@ hr{border:none; border-top:1px solid var(--rule) !important;}
   [data-testid="stExpandSidebarButton"]{top:8px; right:8px; width:38px; height:30px;}
 }
 @media(max-width:760px){
+  .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .masthead h1{font-size:1.5rem;}
   .mast-meta{grid-template-columns:1fr; margin:0 -1.6rem;}
   .mast-cell{border-right:none; padding-right:1.6rem;}
@@ -532,6 +543,9 @@ hr{border:none; border-top:1px solid var(--rule) !important;}
   .sec-title{font-size:.8rem;}
   .ph-body{grid-template-columns:1fr; gap:.3rem;}
   .ph-title{font-size:1.35rem;}
+}
+@media(max-width:520px){
+  .kpi-grid{grid-template-columns:1fr;}
 }
 </style>
 """
@@ -614,17 +628,25 @@ def roc_figure(data):
     return fig
 
 
-def kpi(col, label, value, delta="", tone=INK, icon=""):
-    with col:
-        st.markdown(
-            f'<div class="kpi">'
-            f'<div class="kpi-top"><span class="kpi-label">{label}</span>'
-            f'<span class="kpi-ico">{icon}</span></div>'
-            f'<div class="kpi-value">{value}</div>'
-            f'<div class="kpi-delta">{delta}</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+def kpi_row(items):
+    """Render one grid row of KPI cards: (label, value, delta, icon) tuples.
+
+    A grid row is sized by its tallest card, so the cards always fit the row
+    instead of relying on percentage heights inside Streamlit's columns.
+    """
+    cards = "".join(
+        f'<div class="kpi">'
+        f'<div class="kpi-top"><span class="kpi-label">{label}</span>'
+        f'<span class="kpi-ico">{icon}</span></div>'
+        f'<div class="kpi-value">{value}</div>'
+        f'<div class="kpi-delta">{delta}</div>'
+        f'</div>'
+        for label, value, delta, icon in items
+    )
+    st.markdown(
+        f'<div class="kpi-grid" style="--cols:{len(items)}">{cards}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def section(num, title, sub=""):
@@ -861,12 +883,13 @@ if page == "Overview":
     section("01", "Ensemble performance",
             "Validation metrics from the latest full training run.")
 
-    c1, c2, c3, c4, c5 = st.columns(5, gap="small")
-    kpi(c1, "Accuracy", f"{metrics.get('accuracy', 0):.1%}", "Validation split", INK, "01")
-    kpi(c2, "Precision", f"{metrics.get('precision', 0):.1%}", "Alert quality", INK, "02")
-    kpi(c3, "Recall", f"{metrics.get('recall', 0):.1%}", "Fraud captured", GREEN, "03")
-    kpi(c4, "F1 score", f"{metrics.get('f1_score', 0):.1%}", "Harmonic mean", AMBER, "04")
-    kpi(c5, "ROC-AUC", f"{metrics.get('auc', 0):.3f}", "Discrimination", RED, "05")
+    kpi_row([
+        ("Accuracy", f"{metrics.get('accuracy', 0):.1%}", "Validation split", "01"),
+        ("Precision", f"{metrics.get('precision', 0):.1%}", "Alert quality", "02"),
+        ("Recall", f"{metrics.get('recall', 0):.1%}", "Fraud captured", "03"),
+        ("F1 score", f"{metrics.get('f1_score', 0):.1%}", "Harmonic mean", "04"),
+        ("ROC-AUC", f"{metrics.get('auc', 0):.3f}", "Discrimination", "05"),
+    ])
 
     section("02", "How a transaction gets scored",
             "Four stages, from raw attributes to a fused risk probability.")
@@ -1003,12 +1026,13 @@ elif page == "Dataset":
         avg_fraud = (df[df["fraud_prediction"] == 1]["Transaction Amount"].mean()
                      if fraud_cnt and "Transaction Amount" in df.columns else 0)
 
-        c1, c2, c3, c4 = st.columns(4, gap="small")
-        kpi(c1, "Total rows", f"{total_rows:,}", f"{df.shape[1]} columns", INK, "▤")
-        kpi(c2, "Flagged fraud", f"{fraud_cnt:,}", f"{(fraud_cnt/total_rows*100):.2f}% of total", RED, "▲")
-        kpi(c3, "Legitimate", f"{legit_cnt:,}", f"{(legit_cnt/total_rows*100):.2f}% of total", GREEN, "▼")
-        kpi(c4, "Avg fraud ticket", f"₹{avg_fraud:,.0f}" if avg_fraud else "—",
-            "Mean fraud amount", AMBER, "₹")
+        kpi_row([
+            ("Total rows", f"{total_rows:,}", f"{df.shape[1]} columns", "▤"),
+            ("Flagged fraud", f"{fraud_cnt:,}", f"{(fraud_cnt/total_rows*100):.2f}% of total", "▲"),
+            ("Legitimate", f"{legit_cnt:,}", f"{(legit_cnt/total_rows*100):.2f}% of total", "▼"),
+            ("Avg fraud ticket", f"₹{avg_fraud:,.0f}" if avg_fraud else "—",
+             "Mean fraud amount", "₹"),
+        ])
 
         section("02", "Distributions", "Class balance and ticket size on the active dataset.")
         g1, g2 = st.columns(2, gap="medium")
@@ -1164,13 +1188,14 @@ elif page == "Training":
     section("01", "Train and evaluate the ensemble",
             "Re-fit StandardScaler → OneHot → SMOTE → LDA → ANN + DNN and refresh every artifact.")
 
-    c1, c2, c3 = st.columns(3, gap="small")
-    kpi(c1, "Balanced train rows", f"{metrics.get('train_samples_after_smote', 0):,}",
-        "After SMOTE", INK, "◈")
-    kpi(c2, "Validation rows", f"{metrics.get('val_samples', 0):,}",
-        "Held out before SMOTE", INK, "◇")
-    kpi(c3, "Ensemble AUC", f"{metrics.get('auc', 0):.4f}",
-        "Validation ROC-AUC", GREEN, "◉")
+    kpi_row([
+        ("Balanced train rows", f"{metrics.get('train_samples_after_smote', 0):,}",
+         "After SMOTE", "◈"),
+        ("Validation rows", f"{metrics.get('val_samples', 0):,}",
+         "Held out before SMOTE", "◇"),
+        ("Ensemble AUC", f"{metrics.get('auc', 0):.4f}",
+         "Validation ROC-AUC", "◉"),
+    ])
 
     section("02", "Run the pipeline")
     b1, b2 = st.columns(2, gap="medium")
@@ -1198,12 +1223,13 @@ elif page == "Training":
                 y_true, y_pred = df["is_fraud"], df["fraud_prediction"]
                 y_prob = df["fraud_probability"]
                 st.success("Evaluation complete on the active dataset.")
-                m = st.columns(5, gap="small")
-                kpi(m[0], "Accuracy", f"{accuracy_score(y_true, y_pred):.2%}", "", INK)
-                kpi(m[1], "Precision", f"{precision_score(y_true, y_pred, zero_division=0):.2%}", "", INK)
-                kpi(m[2], "Recall", f"{recall_score(y_true, y_pred, zero_division=0):.2%}", "", GREEN)
-                kpi(m[3], "F1", f"{f1_score(y_true, y_pred, zero_division=0):.2%}", "", AMBER)
-                kpi(m[4], "ROC-AUC", f"{roc_auc_score(y_true, y_prob):.2%}", "", RED)
+                kpi_row([
+                    ("Accuracy", f"{accuracy_score(y_true, y_pred):.2%}", "", ""),
+                    ("Precision", f"{precision_score(y_true, y_pred, zero_division=0):.2%}", "", ""),
+                    ("Recall", f"{recall_score(y_true, y_pred, zero_division=0):.2%}", "", ""),
+                    ("F1", f"{f1_score(y_true, y_pred, zero_division=0):.2%}", "", ""),
+                    ("ROC-AUC", f"{roc_auc_score(y_true, y_prob):.2%}", "", ""),
+                ])
             else:
                 st.info("The active dataset has no ground-truth `is_fraud` labels.")
 
@@ -1266,13 +1292,14 @@ elif page == "Monitor":
         filtered = filtered[filtered["fraud_probability"] >= min_prob]
         filtered = filtered.sort_values("fraud_probability", ascending=False)
 
-    s1, s2, s3 = st.columns(3, gap="small")
-    kpi(s1, "Matching", f"{len(filtered):,}", f"of {len(df):,} records", INK, "☰")
-    kpi(s2, "Flagged in view", f"{int(filtered['fraud_prediction'].sum()) if scored_ok else 0:,}",
-        f"cutoff {threshold:.0%}", RED, "▲")
-    kpi(s3, "Risk exposure", f"₹{filtered[filtered['fraud_prediction']==1]['Transaction Amount'].sum():,.0f}"
-        if scored_ok and "Transaction Amount" in filtered.columns else "—",
-        "Sum of flagged amounts", AMBER, "₹")
+    kpi_row([
+        ("Matching", f"{len(filtered):,}", f"of {len(df):,} records", "☰"),
+        ("Flagged in view", f"{int(filtered['fraud_prediction'].sum()) if scored_ok else 0:,}",
+         f"cutoff {threshold:.0%}", "▲"),
+        ("Risk exposure", f"₹{filtered[filtered['fraud_prediction']==1]['Transaction Amount'].sum():,.0f}"
+         if scored_ok and "Transaction Amount" in filtered.columns else "—",
+         "Sum of flagged amounts", "₹"),
+    ])
 
     display_cols = [c for c in [
         "Transaction ID", "Transaction Amount", "Quantity", "Account Age Days",
@@ -1423,11 +1450,11 @@ elif page == "Predict":
             )
 
             st.markdown("<div style='height:.7rem'></div>", unsafe_allow_html=True)
-            m1, m2, m3 = st.columns(3, gap="small")
-            kpi(m1, "ANN", f"{ann_prob:.1%}", "128·64", INK)
-            kpi(m2, "DNN", f"{dnn_prob:.1%}", "256·128·64", INK)
-            kpi(m3, "Ensemble", f"{score:.1%}", f"cutoff {threshold:.0%}",
-                RED if is_fraud else GREEN)
+            kpi_row([
+                ("ANN", f"{ann_prob:.1%}", "128·64", ""),
+                ("DNN", f"{dnn_prob:.1%}", "256·128·64", ""),
+                ("Ensemble", f"{score:.1%}", f"cutoff {threshold:.0%}", ""),
+            ])
 
             signals = []
             if amt >= 50000:
